@@ -508,7 +508,7 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
         <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
         <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול פלוס", וההקלטה נכנסת לתור אוטומטית.</p>
         <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
-        <p class="hint">גרסה 1.3.0</p>
+        <p class="hint">גרסה 1.3.1</p>
       </div>
     </section>
   </main>
@@ -522,7 +522,7 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
 /* =========================================================
    תמלול פלוס – מערכת תמלול הקלטות
    ========================================================= */
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.3.1';
 const DEFAULTS = {
   emailjsService: 'service_nybca58',
   emailjsTemplate: 'template_9e88gji',
@@ -949,7 +949,7 @@ async function gemFetch(path, opts = {}, attempt = 0) {
   const key = geminiKey();
   if (!key) throw new Error('לא הוגדר מפתח Gemini – היכנס להגדרות והדבק את המפתח');
   const r = await fetch(GEM + path, Object.assign({}, opts, { headers: Object.assign({ 'x-goog-api-key': key }, opts.headers || {}) }));
-  if ((r.status === 429 || r.status === 503 || r.status === 500) && attempt < 4) {
+  if ((r.status === 429 && attempt < 4) || ((r.status === 503 || r.status === 500) && attempt < 1)) {
     const txt = await r.text(); let wait = 8 * (attempt + 1);
     const m = txt.match(/retry in ([\d.]+)s/i) || txt.match(/"retryDelay":\s*"(\d+)s"/); if (m) wait = Math.min(90, +m[1] + 1);
     await sleep(wait * 1000);
@@ -962,20 +962,19 @@ async function gemFetch(path, opts = {}, attempt = 0) {
   return r.json();
 }
 let gemModelCache = null;
-async function pickGeminiModel() {
+const GEM_PREFER = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.5-pro'];
+async function geminiModels() {
   if (gemModelCache) return gemModelCache;
   const res = await gemFetch('/models?pageSize=200');
   const names = (res.models || []).filter((m) => (m.supportedGenerationMethods || []).includes('generateContent')).map((m) => m.name.replace(/^models\//, ''));
-  const prefer = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash-lite'];
-  let pick = prefer.find((p) => names.includes(p));
-  if (!pick) {
-    const flashes = names.filter((n) => /^gemini-\d+(\.\d+)?-flash$/.test(n)).sort((a, b) => parseFloat(b.split('-')[1]) - parseFloat(a.split('-')[1]));
-    pick = flashes[0] || names.find((n) => /^gemini/.test(n) && !/image|tts|live|embedding|audio/.test(n));
-  }
-  if (!pick) throw new Error('לא נמצא מודל Gemini זמין');
-  gemModelCache = pick;
-  return pick;
+  let list = GEM_PREFER.filter((p) => names.includes(p));
+  const extra = names.filter((n) => /^gemini-\d+(\.\d+)?-flash$/.test(n) && !list.includes(n)).sort((x, y) => parseFloat(y.split('-')[1]) - parseFloat(x.split('-')[1]));
+  list = list.concat(extra);
+  if (!list.length) throw new Error('לא נמצא מודל Gemini זמין');
+  gemModelCache = list;
+  return list;
 }
+async function pickGeminiModel() { return (await geminiModels())[0]; }
 function blobToB64(blob) {
   return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = () => rej(fr.error); fr.readAsDataURL(blob); });
 }
@@ -985,32 +984,45 @@ const GEM_LANG_PROMPT = {
   en: 'Transcribe this audio VERBATIM in English with punctuation. Do NOT translate or summarize.',
   auto: 'Transcribe this audio VERBATIM in the language that is spoken (Yiddish and Hebrew in Hebrew letters without nikud). Do NOT translate or summarize.'
 };
-async function geminiTranscribeOne(blob, mime, lang) {
-  const model = await pickGeminiModel();
-  const body = {
-    contents: [{ role: 'user', parts: [
-      { inline_data: { mime_type: mime, data: await blobToB64(blob) } },
-      { text: GEM_LANG_PROMPT[lang] || GEM_LANG_PROMPT.auto + '' },
-      { text: 'Return JSON: an array of segments in order, each {"start": seconds (number), "end": seconds (number), "text": one sentence or short phrase}. Cover the whole recording from beginning to end.' }
-    ] }],
-    generationConfig: {
-      temperature: 0,
-      maxOutputTokens: 60000,
-      responseMimeType: 'application/json',
-      responseSchema: { type: 'ARRAY', items: { type: 'OBJECT', properties: { start: { type: 'NUMBER' }, end: { type: 'NUMBER' }, text: { type: 'STRING' } }, required: ['start', 'end', 'text'] } }
+function parseTimedLines(txt, dur) {
+  const segs = [];
+  txt.split(/\n+/).forEach((line) => {
+    const m = line.trim().match(/^\[?(\d{1,2}):(\d{2})(?::(\d{2}))?\]?\s*[-–:]?\s*(.*)$/);
+    if (m) {
+      const t = m[3] !== undefined ? (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) : (+m[1]) * 60 + (+m[2]);
+      if (m[4].trim()) segs.push({ start: t, end: t, text: m[4].trim() });
+    } else if (line.trim()) {
+      if (segs.length) segs[segs.length - 1].text += ' ' + line.trim(); else segs.push({ start: 0, end: 0, text: line.trim() });
     }
-  };
-  if (/2\.5/.test(model)) body.generationConfig.thinkingConfig = { thinkingBudget: /pro/.test(model) ? 128 : 0 };
-  const res = await gemFetch(`/models/${model}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  const cand = res.candidates && res.candidates[0];
-  const txt = cand && cand.content && (cand.content.parts || []).map((p) => p.text || '').join('');
-  if (!txt) throw new Error('Gemini לא החזיר טקסט' + (cand && cand.finishReason ? ` (${cand.finishReason})` : ''));
-  let segs;
-  try { segs = JSON.parse(txt); } catch (e) {
-    const fixed = txt.slice(0, txt.lastIndexOf('}') + 1) + ']';
-    try { segs = JSON.parse(fixed); } catch (e2) { return [{ start: 0, end: 0, text: txt.trim() }]; }
+  });
+  for (let i = 0; i < segs.length; i++) segs[i].end = i + 1 < segs.length ? Math.max(segs[i].start, segs[i + 1].start) : Math.max(segs[i].start, dur || segs[i].start + 5);
+  return segs;
+}
+async function geminiTranscribeOne(blob, mime, lang, dur) {
+  const models = await geminiModels();
+  const b64 = await blobToB64(blob);
+  let lastErr;
+  for (const model of models.slice(0, 4)) {
+    try {
+      const body = {
+        contents: [{ role: 'user', parts: [
+          { inline_data: { mime_type: mime, data: b64 } },
+          { text: (GEM_LANG_PROMPT[lang] || GEM_LANG_PROMPT.auto) + ' Put each sentence on its own line, starting with its start time in the format [mm:ss]. Cover the whole recording from beginning to end. Output only the transcript lines.' }
+        ] }],
+        generationConfig: { temperature: 0, maxOutputTokens: 30000 }
+      };
+      const res = await gemFetch(`/models/${model}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const cand = res.candidates && res.candidates[0];
+      const txt = cand && cand.content && (cand.content.parts || []).filter((p) => !p.thought).map((p) => p.text || '').join('').trim();
+      if (!txt) throw new Error('Gemini לא החזיר טקסט' + (res.promptFeedback && res.promptFeedback.blockReason ? ` (${res.promptFeedback.blockReason})` : cand && cand.finishReason ? ` (${cand.finishReason})` : ''));
+      if (models[0] !== model) { gemModelCache = [model].concat(models.filter((x) => x !== model)); }
+      return parseTimedLines(txt, dur);
+    } catch (err) {
+      lastErr = err; console.warn('Gemini model failed', model, err.message);
+      if (err.status === 400 && /API key|permission|PERMISSION/i.test(err.message)) throw err;
+    }
   }
-  return (Array.isArray(segs) ? segs : []).map((x) => ({ start: +x.start || 0, end: +x.end || +x.start || 0, text: String(x.text || '').trim() })).filter((x) => x.text);
+  throw lastErr || new Error('Gemini נכשל');
 }
 const GEM_MAX_INLINE = 13 * 1024 * 1024;
 const GEM_CHUNK_SEC = 300;
@@ -1023,7 +1035,7 @@ async function geminiTranscribe(blob, name, lang, onProgress) {
   // Short enough: send the original file as-is
   if (blob.size <= GEM_MAX_INLINE && (!total || total <= 12 * 60)) {
     onProgress && onProgress('Gemini מתמלל…');
-    const segs = await geminiTranscribeOne(blob, mimeByExt[ext] || blob.type || 'audio/ogg', lang);
+    const segs = await geminiTranscribeOne(blob, mimeByExt[ext] || blob.type || 'audio/ogg', lang, total);
     return { text: segs.map((s) => s.text).join(' '), segments: segs, duration: total || (segs.length ? segs[segs.length - 1].end : 0), language: lang };
   }
   if (!audio) throw new Error('לא הצלחתי לפענח את קובץ השמע (פורמט לא נתמך)');
@@ -1033,7 +1045,7 @@ async function geminiTranscribe(blob, name, lang, onProgress) {
     const st = i * GEM_CHUNK_SEC, en = Math.min(total, st + GEM_CHUNK_SEC);
     onProgress && onProgress(`Gemini מתמלל חלק ${i + 1} מתוך ${parts}…`);
     const wav = encodeWav(await resampleMono16k(audio, st, en));
-    const segs = await geminiTranscribeOne(wav, 'audio/wav', lang);
+    const segs = await geminiTranscribeOne(wav, 'audio/wav', lang, en - st);
     segs.forEach((s) => out.segments.push({ start: Math.min(en, s.start + st), end: Math.min(en, s.end + st), text: s.text }));
   }
   out.text = out.segments.map((s) => s.text).join(' ');
