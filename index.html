@@ -508,7 +508,7 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
         <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
         <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול פלוס", וההקלטה נכנסת לתור אוטומטית.</p>
         <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
-        <p class="hint">גרסה 1.3.1</p>
+        <p class="hint">גרסה 1.3.2</p>
       </div>
     </section>
   </main>
@@ -522,7 +522,7 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
 /* =========================================================
    תמלול פלוס – מערכת תמלול הקלטות
    ========================================================= */
-const APP_VERSION = '1.3.1';
+const APP_VERSION = '1.3.2';
 const DEFAULTS = {
   emailjsService: 'service_nybca58',
   emailjsTemplate: 'template_9e88gji',
@@ -948,7 +948,11 @@ function engineFor(lang) {
 async function gemFetch(path, opts = {}, attempt = 0) {
   const key = geminiKey();
   if (!key) throw new Error('לא הוגדר מפתח Gemini – היכנס להגדרות והדבק את המפתח');
-  const r = await fetch(GEM + path, Object.assign({}, opts, { headers: Object.assign({ 'x-goog-api-key': key }, opts.headers || {}) }));
+  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 240000);
+  let r;
+  try { r = await fetch(GEM + path, Object.assign({}, opts, { signal: ctl.signal, headers: Object.assign({ 'x-goog-api-key': key }, opts.headers || {}) })); }
+  catch (e) { throw new Error(e.name === 'AbortError' ? 'Gemini לא ענה בזמן (timeout)' : 'שגיאת רשת מול Gemini: ' + e.message); }
+  finally { clearTimeout(to); }
   if ((r.status === 429 && attempt < 4) || ((r.status === 503 || r.status === 500) && attempt < 1)) {
     const txt = await r.text(); let wait = 8 * (attempt + 1);
     const m = txt.match(/retry in ([\d.]+)s/i) || txt.match(/"retryDelay":\s*"(\d+)s"/); if (m) wait = Math.min(90, +m[1] + 1);
@@ -1002,7 +1006,9 @@ async function geminiTranscribeOne(blob, mime, lang, dur) {
   const models = await geminiModels();
   const b64 = await blobToB64(blob);
   let lastErr;
-  for (const model of models.slice(0, 4)) {
+  const tries = [];
+  models.slice(0, 4).forEach((m, i) => { tries.push(m); if (i === 0) tries.push(m); });
+  for (const model of tries) {
     try {
       const body = {
         contents: [{ role: 'user', parts: [
