@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>תמלול – מערכת תמלול הקלטות</title>
+<meta name="description" content="תמלול הקלטות בעברית, יידיש ואנגלית">
+<meta name="theme-color" content="#4f46e5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="תמלול">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#f5f6fb; --card:#ffffff; --text:#1c1d29; --muted:#6b6f85; --line:#e3e5ef;
+  --primary:#4f46e5; --primary-2:#7c3aed; --primary-soft:#eef0ff; --ok:#16a34a; --warn:#d97706; --err:#dc2626;
+  --shadow:0 2px 10px rgba(30,30,80,.07); --radius:14px; --hl:#fff4c2;
+}
+body.dark{
+  --bg:#12131c; --card:#1c1e2b; --text:#eceef7; --muted:#9aa0bb; --line:#2c2f42;
+  --primary:#8b83ff; --primary-2:#b18cff; --primary-soft:#262a45; --shadow:0 2px 10px rgba(0,0,0,.35); --hl:#4a4020;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,"Noto Sans Hebrew",sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.55;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--primary)}
+.hidden{display:none!important}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:.5em 1em;display:inline-flex;align-items:center;gap:.4em;transition:.15s}
+.btn:hover{border-color:var(--primary)}
+.btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border:none}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--err)}
+.btn.small{padding:.25em .7em;font-size:.9em}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+input[type=text],input[type=password],input[type=email],input[type=search],input[type=number],select,textarea{
+  width:100%;padding:.6em .8em;border:1px solid var(--line);border-radius:10px;background:var(--card);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+label{display:block;font-weight:600;margin:.8em 0 .3em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.2em}
+.muted{color:var(--muted)}
+.row{display:flex;gap:.6em;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+.err-text{color:var(--err)}
+.ok-text{color:var(--ok)}
+
+/* Auth */
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+#auth .card{width:100%;max-width:420px}
+.logo{display:flex;align-items:center;gap:.6em;font-size:1.5em;font-weight:800}
+.logo img{width:44px;height:44px;border-radius:12px}
+.auth-msg{margin-top:.8em;min-height:1.4em}
+
+/* App layout */
+header.top{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);padding:.6em 16px;display:flex;align-items:center;gap:.8em;flex-wrap:wrap}
+header.top .logo{font-size:1.2em}
+header.top .logo img{width:34px;height:34px;border-radius:9px}
+nav.tabs{display:flex;gap:.3em;flex-wrap:wrap}
+nav.tabs button{border:none;background:none;padding:.45em .8em;border-radius:9px;color:var(--muted);font-weight:600}
+nav.tabs button.active{background:var(--primary-soft);color:var(--primary)}
+.top-actions{margin-inline-start:auto;display:flex;gap:.4em;align-items:center}
+.icon-btn{border:1px solid var(--line);background:var(--card);border-radius:10px;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;font-size:1.1em}
+main{max-width:1100px;margin:0 auto;padding:16px}
+section.page{display:none}
+section.page.active{display:block}
+h2{margin:.2em 0 .6em}
+h3{margin:.2em 0 .5em}
+
+/* Home */
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.home-grid{grid-template-columns:1fr}}
+.rec-btn{width:110px;height:110px;border-radius:50%;border:none;background:linear-gradient(135deg,#ef4444,#db2777);color:#fff;font-size:2.6em;box-shadow:0 6px 20px rgba(220,38,38,.35);display:flex;align-items:center;justify-content:center;margin:.4em auto}
+.rec-btn.recording{animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}70%{box-shadow:0 0 0 22px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.rec-time{text-align:center;font-size:1.6em;font-variant-numeric:tabular-nums;font-weight:700}
+.meter{height:8px;background:var(--line);border-radius:5px;overflow:hidden;margin:.5em 0}
+.meter > div{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#eab308,#ef4444);transition:width .08s}
+.drop{border:2px dashed var(--line);border-radius:var(--radius);padding:1.6em 1em;text-align:center;transition:.15s}
+.drop.over{border-color:var(--primary);background:var(--primary-soft)}
+.queue-item{display:flex;align-items:center;gap:.6em;padding:.55em 0;border-bottom:1px solid var(--line)}
+.queue-item:last-child{border-bottom:none}
+.badge{font-size:.8em;padding:.15em .6em;border-radius:20px;background:var(--primary-soft);color:var(--primary);white-space:nowrap}
+.badge.ok{background:rgba(22,163,74,.13);color:var(--ok)}
+.badge.err{background:rgba(220,38,38,.12);color:var(--err)}
+.badge.warn{background:rgba(217,119,6,.13);color:var(--warn)}
+.spinner{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Library */
+.lib{display:grid;grid-template-columns:230px 1fr;gap:16px}
+@media(max-width:760px){.lib{grid-template-columns:1fr}}
+.folders button.f{display:flex;width:100%;justify-content:space-between;border:none;background:none;padding:.45em .6em;border-radius:9px;text-align:start}
+.folders button.f.active{background:var(--primary-soft);color:var(--primary);font-weight:700}
+.rec-card{padding:.9em 1em;border:1px solid var(--line);border-radius:12px;background:var(--card);margin-bottom:.7em;cursor:pointer}
+.rec-card:hover{border-color:var(--primary)}
+.rec-card .title{font-weight:700}
+.rec-card .snippet{color:var(--muted);font-size:.93em;margin-top:.25em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tag{display:inline-flex;align-items:center;gap:.25em;font-size:.8em;padding:.1em .55em;border-radius:20px;background:var(--primary-soft);color:var(--primary);margin:.15em}
+.tag button{border:none;background:none;padding:0;color:inherit;font-size:1em;line-height:1}
+mark{background:var(--hl);color:inherit;border-radius:3px}
+
+/* Detail */
+#waveWrap{position:relative;height:90px;background:var(--primary-soft);border-radius:10px;overflow:hidden;cursor:pointer;margin:.6em 0}
+#wave{width:100%;height:100%;display:block}
+audio{width:100%}
+.transcript{line-height:2;font-size:1.08em;margin-top:.6em}
+.seg{padding:.1em .15em;border-radius:5px;cursor:pointer}
+.seg:hover{background:var(--primary-soft)}
+.seg.active{background:var(--hl)}
+.seg-time{font-size:.72em;color:var(--muted);margin-inline-end:.25em;font-variant-numeric:tabular-nums;user-select:none}
+.summary{background:var(--primary-soft);border-radius:12px;padding:1em;margin-top:.8em;white-space:pre-wrap}
+.toolbar{display:flex;gap:.4em;flex-wrap:wrap;margin:.6em 0}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.stat .num{font-size:1.9em;font-weight:800;color:var(--primary)}
+.bar-row{display:flex;align-items:center;gap:.6em;margin:.35em 0}
+.bar-row .lbl{width:110px;flex-shrink:0;font-size:.92em}
+.bar-row .bar{flex:1;height:14px;background:var(--line);border-radius:7px;overflow:hidden}
+.bar-row .bar>div{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-2))}
+.bar-row .val{width:70px;text-align:start;font-size:.9em;color:var(--muted)}
+
+/* Modal & toast */
+.modal-bg{position:fixed;inset:0;background:rgba(10,10,25,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{background:var(--card);border-radius:var(--radius);max-width:460px;width:100%;padding:1.3em;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222433;color:#fff;padding:.7em 1.2em;border-radius:12px;z-index:60;max-width:90vw;box-shadow:0 6px 24px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+.settings-sec{margin-bottom:16px}
+.hint{font-size:.88em;color:var(--muted);margin-top:.3em}
+@media print{header.top,.toolbar{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH ============ -->
+<div id="auth" class="hidden">
+  <div class="card">
+    <div class="logo"><img src="icon-192.png" alt=""> תמלול</div>
+
+    <form id="setupForm" class="hidden" autocomplete="on">
+      <h3 style="margin-top:1em">הגדרה ראשונה – יצירת מנהל</h3>
+      <p class="muted">זו הפעלה ראשונה של המערכת במכשיר הזה. קבע שם משתמש, סיסמה ומייל לשחזור.</p>
+      <label for="setupUser">שם משתמש</label>
+      <input id="setupUser" type="text" autocomplete="username" required>
+      <label for="setupEmail">מייל לשחזור סיסמה</label>
+      <input id="setupEmail" type="email" autocomplete="email" required>
+      <label for="setupPass">סיסמה (לפחות 4 תווים)</label>
+      <input id="setupPass" type="password" autocomplete="new-password" required>
+      <label for="setupPass2">אימות סיסמה</label>
+      <input id="setupPass2" type="password" autocomplete="new-password" required>
+      <div style="margin-top:1.2em"><button class="btn primary" type="submit">יצירה וכניסה</button></div>
+    </form>
+
+    <form id="loginForm" class="hidden" autocomplete="on">
+      <h3 style="margin-top:1em">כניסה</h3>
+      <label for="loginUser">שם משתמש</label>
+      <input id="loginUser" type="text" autocomplete="username" required>
+      <label for="loginPass">סיסמה</label>
+      <input id="loginPass" type="password" autocomplete="current-password" required>
+      <div class="row" style="margin-top:1.2em">
+        <button class="btn primary" type="submit">כניסה</button>
+        <button class="btn" type="button" id="forgotBtn">שכחתי סיסמה</button>
+      </div>
+    </form>
+
+    <form id="forgotForm" class="hidden">
+      <h3 style="margin-top:1em">שחזור סיסמה</h3>
+      <p class="muted">הזן את המייל ששמרת במערכת. נשלח אליו קוד בן 4 ספרות.</p>
+      <label for="forgotEmail">מייל</label>
+      <input id="forgotEmail" type="email" required>
+      <div class="row" style="margin-top:1.2em">
+        <button class="btn primary" type="submit" id="sendCodeBtn">שליחת קוד</button>
+        <button class="btn" type="button" data-back>חזרה לכניסה</button>
+      </div>
+    </form>
+
+    <form id="resetForm" class="hidden">
+      <h3 style="margin-top:1em">הזנת קוד וסיסמה חדשה</h3>
+      <p class="muted">שלחנו קוד בן 4 ספרות למייל. אם לא הגיע – בדוק גם בספאם ובקידומי מכירות.</p>
+      <label for="resetCode">קוד (4 ספרות)</label>
+      <input id="resetCode" type="text" inputmode="numeric" maxlength="4" pattern="\d{4}" autocomplete="one-time-code" required>
+      <label for="resetPass">סיסמה חדשה</label>
+      <input id="resetPass" type="password" autocomplete="new-password" required>
+      <label for="resetPass2">אימות סיסמה חדשה</label>
+      <input id="resetPass2" type="password" autocomplete="new-password" required>
+      <div class="row" style="margin-top:1.2em">
+        <button class="btn primary" type="submit">שמירת סיסמה חדשה</button>
+        <button class="btn" type="button" id="resendBtn">שליחת קוד חדש</button>
+        <button class="btn" type="button" data-back>ביטול</button>
+      </div>
+    </form>
+
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="logo"><img src="icon-192.png" alt=""> תמלול</div>
+    <nav class="tabs" id="tabs">
+      <button data-page="home" class="active">🎙️ תמלול</button>
+      <button data-page="library">📚 ספרייה</button>
+      <button data-page="stats">📊 סטטיסטיקה</button>
+      <button data-page="settings">⚙️ הגדרות</button>
+    </nav>
+    <div class="top-actions">
+      <button class="btn small primary hidden" id="installBtn">📲 התקנה כאפליקציה</button>
+      <button class="icon-btn" id="darkBtn" title="מצב חושך">🌙</button>
+      <button class="icon-btn" id="logoutBtn" title="יציאה">⎋</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section class="page active" id="page-home">
+      <div id="noKeyWarn" class="card hidden" style="border-color:var(--warn);margin-bottom:16px">
+        ⚠️ עדיין לא הוגדר מפתח Groq. <a href="#" data-goto="settings">עבור להגדרות</a> והדבק את המפתח כדי שהתמלול יעבוד.
+      </div>
+      <div class="row" style="margin-bottom:12px">
+        <label for="langSel" style="margin:0">שפת ההקלטה:</label>
+        <select id="langSel" style="width:auto">
+          <option value="he">עברית</option>
+          <option value="yi">יידיש</option>
+          <option value="en">אנגלית</option>
+          <option value="auto">זיהוי אוטומטי</option>
+        </select>
+      </div>
+      <div class="home-grid">
+        <div class="card">
+          <h3>הקלטה מהמיקרופון</h3>
+          <button class="rec-btn" id="recBtn" title="התחלת הקלטה">🎤</button>
+          <div class="rec-time" id="recTime">00:00</div>
+          <div class="meter"><div id="meterBar"></div></div>
+          <p class="muted" style="text-align:center;margin:.3em 0" id="recHint">לחץ על המיקרופון כדי להתחיל, ושוב כדי לעצור ולתמלל.</p>
+        </div>
+        <div class="card">
+          <h3>העלאת הקלטות</h3>
+          <div class="drop" id="drop">
+            <div style="font-size:2em">📁</div>
+            <div>גרור לכאן קבצי שמע (אפשר כמה ביחד)</div>
+            <div class="muted" style="font-size:.9em">ווטסאפ (opus), mp3, m4a, wav, ogg, webm, mp4…</div>
+            <div style="margin-top:.8em"><button class="btn primary" id="pickBtn">בחירת קבצים</button></div>
+            <input type="file" id="fileInput" multiple accept="audio/*,video/*,.opus,.ogg,.oga,.m4a,.mp3,.wav,.aac,.amr,.webm,.mp4,.3gp,.flac" class="hidden">
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="row"><h3 class="grow" style="margin:0">תור תמלול</h3><span class="muted" id="queueCount"></span></div>
+        <div id="queueList"><p class="muted">אין הקלטות בתור.</p></div>
+      </div>
+    </section>
+
+    <!-- LIBRARY -->
+    <section class="page" id="page-library">
+      <div class="lib">
+        <div class="card folders">
+          <h3>תיקיות</h3>
+          <div id="folderList"></div>
+          <form id="newFolderForm" class="row" style="margin-top:.8em">
+            <input type="text" id="newFolderName" placeholder="שם תיקייה חדשה" class="grow" style="width:auto">
+            <button class="btn small" type="submit">➕ תיקייה</button>
+          </form>
+        </div>
+        <div>
+          <div class="row" style="margin-bottom:12px">
+            <input type="search" id="searchBox" placeholder="🔍 חיפוש בתמלולים, שמות ותגיות…" class="grow" style="width:auto">
+            <button class="btn small" id="exportAllXlsx">⬇️ Excel לכל הרשימה</button>
+          </div>
+          <div id="recList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DETAIL -->
+    <section class="page" id="page-detail">
+      <div class="card">
+        <div class="row">
+          <button class="btn small" id="backToLib">→ חזרה לספרייה</button>
+          <span class="grow"></span>
+          <span class="badge" id="dLang"></span>
+          <span class="muted" id="dMeta"></span>
+        </div>
+        <input type="text" id="dTitle" style="font-size:1.3em;font-weight:700;margin-top:.7em">
+        <div class="row" style="margin-top:.6em">
+          <label style="margin:0">תיקייה:</label>
+          <select id="dFolder" style="width:auto"></select>
+          <span class="grow"></span>
+        </div>
+        <div class="row" style="margin-top:.6em">
+          <label style="margin:0">תגיות:</label>
+          <span id="dTags"></span>
+          <input type="text" id="dTagInput" placeholder="תגית חדשה + Enter" style="width:180px">
+        </div>
+        <div id="waveWrap"><canvas id="wave"></canvas></div>
+        <audio id="player" controls preload="metadata"></audio>
+        <div class="toolbar">
+          <button class="btn small primary" id="sumBtn">✨ סיכום אוטומטי</button>
+          <button class="btn small" id="copyBtn">📋 העתקה</button>
+          <button class="btn small" id="editBtn">✏️ עריכת טקסט</button>
+          <button class="btn small" id="xlsxBtn">⬇️ Excel</button>
+          <button class="btn small" id="docxBtn">⬇️ Word</button>
+          <button class="btn small" id="pdfBtn">⬇️ PDF</button>
+          <button class="btn small" id="txtBtn">⬇️ TXT</button>
+          <button class="btn small" id="retryBtn">🔄 תמלול מחדש</button>
+          <button class="btn small danger" id="delBtn">🗑️ מחיקה</button>
+        </div>
+        <div id="dSummary" class="summary hidden"></div>
+        <div id="dStatus"></div>
+        <div id="dTranscript" class="transcript"></div>
+        <div id="dEdit" class="hidden">
+          <textarea id="dEditText" rows="12"></textarea>
+          <div class="row" style="margin-top:.5em">
+            <button class="btn small primary" id="saveEditBtn">שמירה</button>
+            <button class="btn small" id="cancelEditBtn">ביטול</button>
+            <span class="hint">שים לב: עריכה ידנית מבטלת את הסימון לפי משפטים.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="page" id="page-stats">
+      <h2>סטטיסטיקה</h2>
+      <div class="stats-grid" id="statCards"></div>
+      <div class="home-grid" style="margin-top:16px">
+        <div class="card"><h3>לפי שפה</h3><div id="statLang"></div></div>
+        <div class="card"><h3>לפי תיקייה</h3><div id="statFolder"></div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>דקות תמלול לפי חודש</h3><div id="statMonth"></div></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="page" id="page-settings">
+      <h2>הגדרות</h2>
+      <div class="card settings-sec">
+        <h3>Groq – מנוע התמלול</h3>
+        <label for="groqKey">מפתח API של Groq</label>
+        <div class="row">
+          <input type="password" id="groqKey" class="grow" style="width:auto" placeholder="gsk_..." autocomplete="off">
+          <button class="btn small" id="showKeyBtn" type="button">👁️</button>
+        </div>
+        <div class="hint">מקבלים מפתח חינם ב-<a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>. המפתח נשמר רק במכשיר הזה.</div>
+        <label for="whisperModel">מודל תמלול</label>
+        <select id="whisperModel">
+          <option value="whisper-large-v3">whisper-large-v3 (הכי מדויק – מומלץ)</option>
+          <option value="whisper-large-v3-turbo">whisper-large-v3-turbo (מהיר יותר)</option>
+        </select>
+        <label for="defLang">שפת ברירת מחדל</label>
+        <select id="defLang">
+          <option value="he">עברית</option><option value="yi">יידיש</option><option value="en">אנגלית</option><option value="auto">זיהוי אוטומטי</option>
+        </select>
+        <div class="row" style="margin-top:1em">
+          <button class="btn primary" id="saveGroqBtn">שמירה</button>
+          <button class="btn" id="testGroqBtn">בדיקת חיבור</button>
+          <span id="groqMsg"></span>
+        </div>
+      </div>
+
+      <div class="card settings-sec">
+        <h3>חשבון</h3>
+        <div class="muted" id="accInfo"></div>
+        <label for="accEmail">מייל לשחזור סיסמה</label>
+        <input type="email" id="accEmail">
+        <label for="accOld">סיסמה נוכחית (לשינוי סיסמה)</label>
+        <input type="password" id="accOld" autocomplete="current-password">
+        <label for="accNew">סיסמה חדשה</label>
+        <input type="password" id="accNew" autocomplete="new-password">
+        <div class="row" style="margin-top:1em">
+          <button class="btn primary" id="saveAccBtn">שמירה</button>
+          <span id="accMsg"></span>
+        </div>
+      </div>
+
+      <div class="card settings-sec">
+        <h3>שליחת מיילים (EmailJS)</h3>
+        <div class="hint">משמש לשליחת קוד שחזור הסיסמה. בדרך כלל אין צורך לשנות.</div>
+        <label for="ejService">Service ID</label><input type="text" id="ejService">
+        <label for="ejTemplate">Template ID</label><input type="text" id="ejTemplate">
+        <label for="ejKey">Public Key</label><input type="text" id="ejKey">
+        <div class="row" style="margin-top:1em">
+          <button class="btn primary" id="saveEjBtn">שמירה</button>
+          <button class="btn" id="testEjBtn">שליחת מייל בדיקה</button>
+          <span id="ejMsg"></span>
+        </div>
+      </div>
+
+      <div class="card settings-sec">
+        <h3>גיבוי ונתונים</h3>
+        <div class="row">
+          <button class="btn" id="backupBtn">⬇️ גיבוי התמלולים (JSON)</button>
+          <button class="btn" id="restoreBtn">⬆️ שחזור מגיבוי</button>
+          <input type="file" id="restoreInput" accept=".json,application/json" class="hidden">
+        </div>
+        <div class="hint">הגיבוי כולל את הטקסטים, התיקיות והתגיות (בלי קבצי השמע עצמם).</div>
+        <div class="muted" id="storageInfo" style="margin-top:.6em"></div>
+      </div>
+
+      <div class="card settings-sec">
+        <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
+        <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול", וההקלטה נכנסת לתור אוטומטית.</p>
+        <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
+        <p class="hint">גרסה 1.0.0</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast"></div>
+<div id="modalRoot"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   תמלול – מערכת תמלול הקלטות
+   ========================================================= */
+const APP_VERSION = '1.0.0';
+const DEFAULTS = {
+  emailjsService: 'service_nybca58',
+  emailjsTemplate: 'template_9e88gji',
+  emailjsKey: '6G0YaH5dH_TKKk_hu',
+  whisperModel: 'whisper-large-v3',
+  defLang: 'he'
+};
+const LANGS = { he: 'עברית', yi: 'יידיש', en: 'אנגלית', auto: 'אוטומטי' };
+const GROQ = 'https://api.groq.com/openai/v1';
+const MAX_DIRECT = 24 * 1024 * 1024;   // Groq free tier limit is 25MB
+const CHUNK_SEC = 600;                  // 10 min chunks for long files
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function fmtTime(sec) {
+  sec = Math.max(0, Math.round(sec || 0));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  const p = (n) => String(n).padStart(2, '0');
+  return h ? `${h}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`;
+}
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+}
+function fmtMinutes(sec) {
+  const m = (sec || 0) / 60;
+  return m < 10 ? m.toFixed(1) : Math.round(m).toString();
+}
+function toast(msg, ms = 3000) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms);
+}
+function modal(html, { onOk, okText = 'אישור', cancelText = 'ביטול', danger = false } = {}) {
+  return new Promise((resolve) => {
+    const bg = document.createElement('div');
+    bg.className = 'modal-bg';
+    bg.innerHTML = `<div class="modal">${html}<div class="row" style="margin-top:1.2em;justify-content:flex-start">
+      <button class="btn ${danger ? 'danger' : 'primary'}" data-ok>${okText}</button>
+      ${cancelText ? `<button class="btn" data-cancel>${cancelText}</button>` : ''}</div></div>`;
+    $('#modalRoot').appendChild(bg);
+    const close = (v) => { bg.remove(); resolve(v); };
+    bg.querySelector('[data-ok]').onclick = () => { if (onOk) onOk(bg); close(true); };
+    const c = bg.querySelector('[data-cancel]'); if (c) c.onclick = () => close(false);
+    bg.addEventListener('click', (e) => { if (e.target === bg) close(false); });
+  });
+}
+const confirmBox = (text) => modal(`<p>${esc(text)}</p>`, { okText: 'כן, למחוק', danger: true });
+
+/* ---------------- Settings (localStorage) ---------------- */
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('tamlul_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('tamlul_' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('tamlul_' + k); } catch (e) {} }
+};
+function setting(k) { const s = LS.get('settings', {}); return s[k] !== undefined && s[k] !== '' ? s[k] : DEFAULTS[k]; }
+function saveSettings(obj) { LS.set('settings', Object.assign(LS.get('settings', {}), obj)); }
+
+/* ---------------- IndexedDB ---------------- */
+const DB = {
+  db: null,
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('tamlul', 1);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if (!db.objectStoreNames.contains('recs')) db.createObjectStore('recs', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('audio')) db.createObjectStore('audio');
+        if (!db.objectStoreNames.contains('folders')) db.createObjectStore('folders', { keyPath: 'id' });
+      };
+      r.onsuccess = () => { this.db = r.result; res(this.db); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  async tx(store, mode, fn) {
+    const db = await this.open();
+    return new Promise((res, rej) => {
+      const t = db.transaction(store, mode);
+      const st = t.objectStore(store);
+      let out;
+      const req = fn(st);
+      if (req) req.onsuccess = () => { out = req.result; };
+      t.oncomplete = () => res(out);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error || new Error('נכשלה שמירה במאגר המקומי'));
+    });
+  },
+  all(store) { return this.tx(store, 'readonly', (s) => s.getAll()); },
+  get(store, key) { return this.tx(store, 'readonly', (s) => s.get(key)); },
+  put(store, val, key) { return this.tx(store, 'readwrite', (s) => key === undefined ? s.put(val) : s.put(val, key)); },
+  del(store, key) { return this.tx(store, 'readwrite', (s) => s.delete(key)); }
+};
+
+/* ---------------- Crypto helpers ---------------- */
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+async function hashPass(pass, salt) { return sha256(salt + '|' + pass + '|tamlul'); }
+
+/* =========================================================
+   AUTH
+   ========================================================= */
+const Auth = {
+  user() { return LS.get('auth', null); },
+  loggedIn() {
+    const s = LS.get('session', null), u = this.user();
+    return !!(s && u && s.user === u.username && s.exp > Date.now());
+  },
+  startSession() { LS.set('session', { user: this.user().username, exp: Date.now() + 30 * 864e5 }); },
+  logout() { LS.del('session'); location.reload(); }
+};
+function authMsg(text, cls = '') { const m = $('#authMsg'); m.className = 'auth-msg ' + cls; m.textContent = text; }
+function showAuthForm(id) {
+  ['setupForm', 'loginForm', 'forgotForm', 'resetForm'].forEach((f) => $('#' + f).classList.toggle('hidden', f !== id));
+  authMsg('');
+  const first = $('#' + id + ' input'); if (first) setTimeout(() => first.focus(), 50);
+}
+function showAuth() {
+  $('#app').classList.add('hidden'); $('#auth').classList.remove('hidden');
+  showAuthForm(Auth.user() ? 'loginForm' : 'setupForm');
+}
+
+$('#setupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const u = $('#setupUser').value.trim(), em = $('#setupEmail').value.trim(), p = $('#setupPass').value, p2 = $('#setupPass2').value;
+  if (!u) return authMsg('יש להזין שם משתמש', 'err-text');
+  if (!/^\S+@\S+\.\S+$/.test(em)) return authMsg('כתובת המייל לא תקינה', 'err-text');
+  if (p.length < 4) return authMsg('הסיסמה צריכה להיות לפחות 4 תווים', 'err-text');
+  if (p !== p2) return authMsg('הסיסמאות אינן תואמות', 'err-text');
+  const salt = uid();
+  LS.set('auth', { username: u, email: em, salt, hash: await hashPass(p, salt), created: Date.now() });
+  Auth.startSession(); enterApp();
+});
+
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const a = Auth.user();
+  const u = $('#loginUser').value.trim(), p = $('#loginPass').value;
+  if (!a) return showAuthForm('setupForm');
+  if (u.toLowerCase() !== a.username.toLowerCase() || (await hashPass(p, a.salt)) !== a.hash) {
+    return authMsg('שם משתמש או סיסמה שגויים', 'err-text');
+  }
+  Auth.startSession(); $('#loginPass').value = ''; enterApp();
+});
+$('#forgotBtn').onclick = () => { showAuthForm('forgotForm'); };
+$$('[data-back]').forEach((b) => b.onclick = () => showAuthForm('loginForm'));
+
+async function sendEmail(toEmail, subject, message) {
+  const body = {
+    service_id: setting('emailjsService'),
+    template_id: setting('emailjsTemplate'),
+    user_id: setting('emailjsKey'),
+    template_params: { to_email: toEmail, email: toEmail, subject, title: subject, message, name: 'מערכת תמלול', from_name: 'מערכת תמלול' }
+  };
+  const r = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  const t = await r.text();
+  if (!r.ok) throw new Error(`EmailJS ${r.status}: ${t}`);
+  return t;
+}
+
+async function sendResetCode() {
+  const a = Auth.user();
+  const em = $('#forgotEmail').value.trim() || (LS.get('reset', {}).email || '');
+  if (!a) return authMsg('עדיין לא הוגדר משתמש במכשיר הזה', 'err-text');
+  if (em.toLowerCase() !== (a.email || '').toLowerCase()) return authMsg('המייל לא תואם למייל ששמור במערכת', 'err-text');
+  const code = String(Math.floor(1000 + Math.random() * 9000));
+  const salt = uid();
+  LS.set('reset', { email: em, salt, hash: await sha256(salt + code), exp: Date.now() + 15 * 60 * 1000, tries: 0 });
+  authMsg('שולח קוד…');
+  $('#sendCodeBtn').disabled = true;
+  try {
+    await sendEmail(em, 'קוד לשחזור סיסמה – תמלול',
+      `שלום ${a.username},\n\nקוד שחזור הסיסמה שלך למערכת התמלול הוא: ${code}\n\nהקוד בתוקף ל-15 דקות.\nאם לא ביקשת לשחזר סיסמה – אפשר להתעלם מהמייל.`);
+    showAuthForm('resetForm');
+    authMsg('הקוד נשלח למייל ' + em, 'ok-text');
+  } catch (err) {
+    console.error(err);
+    authMsg('שליחת המייל נכשלה: ' + err.message, 'err-text');
+  } finally { $('#sendCodeBtn').disabled = false; }
+}
+$('#forgotForm').addEventListener('submit', (e) => { e.preventDefault(); sendResetCode(); });
+$('#resendBtn').onclick = () => sendResetCode();
+
+$('#resetForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const r = LS.get('reset', null), a = Auth.user();
+  const code = $('#resetCode').value.trim(), p = $('#resetPass').value, p2 = $('#resetPass2').value;
+  if (!r || !a) return authMsg('אין בקשת שחזור פעילה – שלח קוד מחדש', 'err-text');
+  if (Date.now() > r.exp) return authMsg('תוקף הקוד פג – שלח קוד חדש', 'err-text');
+  if (r.tries >= 5) return authMsg('יותר מדי ניסיונות – שלח קוד חדש', 'err-text');
+  if ((await sha256(r.salt + code)) !== r.hash) {
+    r.tries++; LS.set('reset', r);
+    return authMsg('הקוד שגוי', 'err-text');
+  }
+  if (p.length < 4) return authMsg('הסיסמה צריכה להיות לפחות 4 תווים', 'err-text');
+  if (p !== p2) return authMsg('הסיסמאות אינן תואמות', 'err-text');
+  a.salt = uid(); a.hash = await hashPass(p, a.salt);
+  LS.set('auth', a); LS.del('reset');
+  ['resetCode', 'resetPass', 'resetPass2'].forEach((i) => $('#' + i).value = '');
+  showAuthForm('loginForm');
+  $('#loginUser').value = a.username;
+  authMsg('הסיסמה עודכנה ✅ היכנס עם הסיסמה החדשה', 'ok-text');
+});
+
+/* =========================================================
+   NAVIGATION / THEME
+   ========================================================= */
+let currentPage = 'home';
+function go(page) {
+  currentPage = page;
+  $$('section.page').forEach((s) => s.classList.toggle('active', s.id === 'page-' + page));
+  $$('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.page === page || (page === 'detail' && b.dataset.page === 'library')));
+  if (page === 'library') renderLibrary();
+  if (page === 'stats') renderStats();
+  if (page === 'settings') renderSettings();
+  if (page !== 'detail') { const p = $('#player'); if (p && !p.paused) p.pause(); }
+  window.scrollTo(0, 0);
+}
+$$('#tabs button').forEach((b) => b.onclick = () => go(b.dataset.page));
+document.addEventListener('click', (e) => { const g = e.target.closest('[data-goto]'); if (g) { e.preventDefault(); go(g.dataset.goto); } });
+
+function applyTheme() {
+  const dark = LS.get('dark', false);
+  document.body.classList.toggle('dark', dark);
+  $('#darkBtn').textContent = dark ? '☀️' : '🌙';
+  $('#darkBtn').title = dark ? 'מצב בהיר' : 'מצב חושך';
+  document.querySelector('meta[name=theme-color]').content = dark ? '#1c1e2b' : '#4f46e5';
+  if (currentPage === 'detail') drawWave();
+}
+$('#darkBtn').onclick = () => { LS.set('dark', !LS.get('dark', false)); applyTheme(); };
+$('#logoutBtn').onclick = () => Auth.logout();
+
+/* =========================================================
+   AUDIO HELPERS
+   ========================================================= */
+function guessExt(blob, name) {
+  const n = (name || '').toLowerCase();
+  const m = n.match(/\.([a-z0-9]{2,5})$/);
+  const byType = {
+    'audio/ogg': 'ogg', 'audio/opus': 'ogg', 'audio/webm': 'webm', 'video/webm': 'webm', 'audio/mpeg': 'mp3', 'audio/mp3': 'mp3',
+    'audio/mp4': 'm4a', 'audio/x-m4a': 'm4a', 'audio/m4a': 'm4a', 'audio/aac': 'm4a', 'video/mp4': 'mp4', 'audio/wav': 'wav', 'audio/x-wav': 'wav',
+    'audio/wave': 'wav', 'audio/flac': 'flac', 'audio/x-flac': 'flac'
+  };
+  const t = (blob.type || '').split(';')[0];
+  let ext = m ? m[1] : (byType[t] || 'ogg');
+  if (ext === 'opus' || ext === 'oga') ext = 'ogg';           // WhatsApp voice notes are ogg/opus
+  if (!['flac', 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'ogg', 'wav', 'webm'].includes(ext)) ext = byType[t] || 'ogg';
+  return ext;
+}
+async function decodeAudio(blob) {
+  const buf = await blob.arrayBuffer();
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  try { return await ctx.decodeAudioData(buf); } finally { ctx.close && ctx.close(); }
+}
+async function resampleMono16k(audioBuf, start, end) {
+  const rate = 16000;
+  const len = Math.ceil((end - start) * rate);
+  const off = new OfflineAudioContext(1, len, rate);
+  const src = off.createBufferSource();
+  src.buffer = audioBuf; src.connect(off.destination);
+  src.start(0, start, end - start);
+  const out = await off.startRendering();
+  return out.getChannelData(0);
+}
+function encodeWav(samples, rate = 16000) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true);
+  v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, samples.length * 2, true);
+  let o = 44;
+  for (let i = 0; i < samples.length; i++, o += 2) { const s = Math.max(-1, Math.min(1, samples[i])); v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+function computePeaks(audioBuf, n = 1200) {
+  const ch = audioBuf.getChannelData(0);
+  const step = Math.max(1, Math.floor(ch.length / n));
+  const peaks = [];
+  for (let i = 0; i < n; i++) {
+    let max = 0; const s = i * step, e = Math.min(ch.length, s + step);
+    for (let j = s; j < e; j += 4) { const a = Math.abs(ch[j]); if (a > max) max = a; }
+    peaks.push(+max.toFixed(3));
+  }
+  const top = Math.max(...peaks, 0.01);
+  return peaks.map((p) => +(p / top).toFixed(3));
+}
+
+/* =========================================================
+   GROQ
+   ========================================================= */
+function groqKey() { return (LS.get('settings', {}).groqKey || '').trim(); }
+async function groqFetch(path, opts = {}, attempt = 0) {
+  const key = groqKey();
+  if (!key) throw new Error('לא הוגדר מפתח Groq – היכנס להגדרות והדבק את המפתח');
+  const r = await fetch(GROQ + path, Object.assign({}, opts, { headers: Object.assign({ Authorization: 'Bearer ' + key }, opts.headers || {}) }));
+  if (r.status === 429 && attempt < 4) {
+    let wait = parseFloat(r.headers.get('retry-after')) || 0;
+    const txt = await r.text();
+    const m = txt.match(/try again in ([\d.]+)(ms|s|m)/i);
+    if (m) wait = m[2] === 'ms' ? +m[1] / 1000 : m[2] === 'm' ? +m[1] * 60 : +m[1];
+    wait = Math.min(Math.max(wait, 3), 120);
+    await sleep(wait * 1000 + 500);
+    return groqFetch(path, opts, attempt + 1);
+  }
+  if (!r.ok) {
+    let msg = await r.text();
+    try { msg = JSON.parse(msg).error.message; } catch (e) {}
+    const err = new Error(`Groq ${r.status}: ${msg}`); err.status = r.status; throw err;
+  }
+  return r.json();
+}
+async function whisper(blob, fileName, lang) {
+  const fd = new FormData();
+  fd.append('file', blob, fileName);
+  fd.append('model', setting('whisperModel'));
+  fd.append('response_format', 'verbose_json');
+  fd.append('temperature', '0');
+  if (lang && lang !== 'auto') fd.append('language', lang);
+  if (lang === 'he') fd.append('prompt', 'תמלול מדויק בעברית, עם סימני פיסוק.');
+  return groqFetch('/audio/transcriptions', { method: 'POST', body: fd });
+}
+async function transcribeBlob(blob, name, lang, onProgress) {
+  const ext = guessExt(blob, name);
+  const tryDirect = blob.size <= MAX_DIRECT;
+  if (tryDirect) {
+    try {
+      onProgress && onProgress('שולח לתמלול…');
+      const res = await whisper(blob, 'audio.' + ext, lang);
+      return { text: (res.text || '').trim(), segments: (res.segments || []).map((s) => ({ start: s.start, end: s.end, text: (s.text || '').trim() })), duration: res.duration, language: res.language };
+    } catch (err) {
+      if (err.status !== 400 && err.status !== 413) throw err;   // only format/size problems fall through to conversion
+      console.warn('Direct upload failed, converting to WAV', err);
+    }
+  }
+  onProgress && onProgress('ממיר את הקובץ…');
+  let audio;
+  try { audio = await decodeAudio(blob); } catch (e) { throw new Error('לא הצלחתי לפענח את קובץ השמע (פורמט לא נתמך)'); }
+  const total = audio.duration, parts = Math.ceil(total / CHUNK_SEC);
+  const out = { text: '', segments: [], duration: total, language: lang };
+  for (let i = 0; i < parts; i++) {
+    const st = i * CHUNK_SEC, en = Math.min(total, st + CHUNK_SEC);
+    onProgress && onProgress(parts > 1 ? `מתמלל חלק ${i + 1} מתוך ${parts}…` : 'שולח לתמלול…');
+    const wav = encodeWav(await resampleMono16k(audio, st, en));
+    const res = await whisper(wav, 'audio.wav', lang);
+    out.text += (out.text ? ' ' : '') + (res.text || '').trim();
+    (res.segments || []).forEach((s) => out.segments.push({ start: s.start + st, end: s.end + st, text: (s.text || '').trim() }));
+    if (res.language) out.language = res.language;
+  }
+  return out;
+}
+
+let chatModelCache = null;
+async function pickChatModel() {
+  if (chatModelCache) return chatModelCache;
+  const list = await groqFetch('/models');
+  const ids = (list.data || []).filter((m) => m.active !== false).map((m) => m.id);
+  const prefer = ['openai/gpt-oss-120b', 'llama-3.3-70b-versatile', 'moonshotai/kimi-k2-instruct-0905', 'moonshotai/kimi-k2-instruct', 'qwen/qwen3-32b',
+    'meta-llama/llama-4-maverick-17b-128e-instruct', 'meta-llama/llama-4-scout-17b-16e-instruct', 'openai/gpt-oss-20b', 'llama-3.1-8b-instant', 'gemma2-9b-it'];
+  let pick = prefer.find((p) => ids.includes(p));
+  if (!pick) pick = ids.find((id) => !/whisper|guard|tts|orpheus|playai|distil|compound|prompt-guard|safeguard/i.test(id));
+  if (!pick) throw new Error('לא נמצא מודל צ\'אט זמין בחשבון Groq');
+  chatModelCache = { pick, ids };
+  return chatModelCache;
+}
+async function summarize(text) {
+  const { pick } = await pickChatModel();
+  const clipped = text.length > 24000 ? text.slice(0, 24000) + '…' : text;
+  const body = {
+    model: pick,
+    temperature: 0.3,
+    max_tokens: 1200,
+    messages: [
+      { role: 'system', content: 'אתה עוזר שמסכם תמלולי הקלטות. ענה תמיד בעברית בלבד, גם אם התמלול ביידיש או באנגלית. אל תמציא פרטים שלא נאמרו.' },
+      { role: 'user', content: `סכם את התמלול הבא בעברית, בפורמט הזה:\nנושא: (שורה אחת)\nנקודות עיקריות:\n• ...\n• ...\nמשימות / החלטות (אם יש):\n• ...\n\nהתמלול:\n"""${clipped}"""` }
+    ]
+  };
+  if (/gpt-oss/.test(pick)) body.reasoning_effort = 'low';
+  if (/qwen3/.test(pick)) body.reasoning_format = 'hidden';
+  const res = await groqFetch('/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  let out = (res.choices && res.choices[0] && res.choices[0].message && res.choices[0].message.content || '').trim();
+  out = out.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/\*\*/g, '').trim();
+  if (!out) throw new Error('המודל החזיר תשובה ריקה');
+  return { summary: out, model: pick };
+}
+
+/* =========================================================
+   QUEUE
+   ========================================================= */
+const Queue = {
+  running: false,
+  items: [], // rec ids
+  async add(blob, name, lang, title) {
+    const id = uid();
+    const rec = {
+      id, title: title || (name ? name.replace(/\.[^.]+$/, '') : 'הקלטה'), fileName: name || 'recording', mime: blob.type || '', size: blob.size,
+      lang, createdAt: Date.now(), duration: 0, folderId: null, tags: [], text: '', segments: [], summary: '', status: 'queued', progress: '', error: ''
+    };
+    await DB.put('audio', blob, id);
+    await DB.put('recs', rec);
+    this.items.push(id);
+    renderQueue();
+    this.run();
+    return id;
+  },
+  async run() {
+    if (this.running) return;
+    this.running = true;
+    try {
+      while (this.items.length) {
+        const id = this.items[0];
+        const rec = await DB.get('recs', id);
+        if (!rec) { this.items.shift(); continue; }
+        const blob = await DB.get('audio', id);
+        rec.status = 'processing'; rec.progress = 'מתחיל…'; rec.error = '';
+        await DB.put('recs', rec); renderQueue();
+        try {
+          const res = await transcribeBlob(blob, rec.fileName, rec.lang, async (p) => { rec.progress = p; await DB.put('recs', rec); renderQueue(); });
+          rec.text = res.text; rec.segments = res.segments; rec.duration = res.duration || rec.duration;
+          if (!rec.duration) { try { rec.duration = (await decodeAudio(blob)).duration; } catch (e) {} }
+          rec.status = res.text ? 'done' : 'error';
+          rec.error = res.text ? '' : 'לא זוהה דיבור בהקלטה';
+          rec.progress = '';
+        } catch (err) {
+          console.error(err);
+          rec.status = 'error'; rec.error = err.message || String(err); rec.progress = '';
+        }
+        rec.updatedAt = Date.now();
+        await DB.put('recs', rec);
+        this.items.shift();
+        renderQueue();
+        if (currentPage === 'library') renderLibrary();
+        if (currentPage === 'detail' && Detail.id === id) Detail.open(id);
+        if (rec.status === 'done') toast('✅ התמלול הסתיים: ' + rec.title);
+        else toast('❌ התמלול נכשל: ' + rec.title, 5000);
+      }
+    } finally { this.running = false; }
+  },
+  async resume() {
+    const recs = await DB.all('recs');
+    recs.filter((r) => r.status === 'queued' || r.status === 'processing').sort((a, b) => a.createdAt - b.createdAt).forEach((r) => { if (!this.items.includes(r.id)) this.items.push(r.id); });
+    if (this.items.length) this.run();
+  }
+};
+let queueShown = new Set();
+async function renderQueue() {
+  const recs = await DB.all('recs');
+  const active = recs.filter((r) => r.status === 'queued' || r.status === 'processing');
+  active.forEach((r) => queueShown.add(r.id));
+  const shown = recs.filter((r) => queueShown.has(r.id)).sort((a, b) => a.createdAt - b.createdAt);
+  $('#queueCount').textContent = active.length ? `${active.length} בתהליך` : '';
+  if (!shown.length) { $('#queueList').innerHTML = '<p class="muted">אין הקלטות בתור.</p>'; return; }
+  $('#queueList').innerHTML = shown.map((r) => {
+    let st;
+    if (r.status === 'queued') st = '<span class="badge warn">ממתין</span>';
+    else if (r.status === 'processing') st = `<span class="spinner"></span><span class="badge">${esc(r.progress || 'מתמלל…')}</span>`;
+    else if (r.status === 'done') st = '<span class="badge ok">הושלם ✓</span>';
+    else st = `<span class="badge err" title="${esc(r.error)}">נכשל</span>`;
+    return `<div class="queue-item">
+      <div class="grow"><div><b>${esc(r.title)}</b> <span class="muted" style="font-size:.85em">· ${LANGS[r.lang] || ''}${r.duration ? ' · ' + fmtTime(r.duration) : ''}</span></div>
+      ${r.status === 'error' ? `<div class="err-text" style="font-size:.85em">${esc(r.error)}</div>` : ''}
+      ${r.status === 'done' ? `<div class="muted" style="font-size:.88em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw">${esc(r.text.slice(0, 140))}</div>` : ''}</div>
+      ${st}
+      ${r.status === 'done' || r.status === 'error' ? `<button class="btn small" data-open="${r.id}">פתיחה</button>` : ''}
+      ${r.status === 'error' ? `<button class="btn small" data-retry="${r.id}">🔄 שוב</button>` : ''}
+    </div>`;
+  }).join('');
+}
+$('#queueList').addEventListener('click', async (e) => {
+  const o = e.target.closest('[data-open]'); if (o) return Detail.open(o.dataset.open);
+  const r = e.target.closest('[data-retry]'); if (r) return retryRec(r.dataset.retry);
+});
+async function retryRec(id) {
+  const rec = await DB.get('recs', id); if (!rec) return;
+  rec.status = 'queued'; rec.error = ''; await DB.put('recs', rec);
+  queueShown.add(id);
+  if (!Queue.items.includes(id)) Queue.items.push(id);
+  renderQueue(); Queue.run();
+}
+
+/* ---------------- Upload ---------------- */
+function addFiles(files) {
+  const list = [...files].filter((f) => f && f.size);
+  if (!list.length) return;
+  if (!groqKey()) toast('⚠️ הקבצים נוספו לתור, אבל חסר מפתח Groq בהגדרות', 5000);
+  const lang = $('#langSel').value;
+  list.forEach((f) => Queue.add(f, f.name, lang));
+  toast(`נוספו ${list.length} קבצים לתור`);
+}
+$('#pickBtn').onclick = () => $('#fileInput').click();
+$('#fileInput').onchange = (e) => { addFiles(e.target.files); e.target.value = ''; };
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop', (e) => { e.preventDefault(); if (currentPage === 'home' && !drop.contains(e.target)) addFiles(e.dataTransfer.files); });
+
+/* ---------------- Recorder ---------------- */
+const Rec = {
+  mr: null, chunks: [], stream: null, t0: 0, timer: null, ctx: null, raf: null,
+  async toggle() { this.mr && this.mr.state === 'recording' ? this.stop() : this.start(); },
+  async start() {
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    } catch (err) {
+      toast('אין גישה למיקרופון: ' + (err.message || err.name), 6000); return;
+    }
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+    const type = types.find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+    this.mr = new MediaRecorder(this.stream, type ? { mimeType: type } : undefined);
+    this.chunks = [];
+    this.mr.ondataavailable = (e) => { if (e.data && e.data.size) this.chunks.push(e.data); };
+    this.mr.onstop = () => this.finish();
+    this.mr.start(1000);
+    this.t0 = Date.now();
+    $('#recBtn').classList.add('recording'); $('#recBtn').textContent = '⏹'; $('#recBtn').title = 'עצירה ותמלול';
+    $('#recHint').textContent = 'מקליט… לחץ שוב כדי לעצור ולתמלל.';
+    this.timer = setInterval(() => $('#recTime').textContent = fmtTime((Date.now() - this.t0) / 1000), 250);
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AC();
+      const an = this.ctx.createAnalyser(); an.fftSize = 512;
+      this.ctx.createMediaStreamSource(this.stream).connect(an);
+      const data = new Uint8Array(an.fftSize);
+      const loop = () => {
+        an.getByteTimeDomainData(data);
+        let m = 0; for (const v of data) m = Math.max(m, Math.abs(v - 128));
+        $('#meterBar').style.width = Math.min(100, (m / 128) * 160) + '%';
+        this.raf = requestAnimationFrame(loop);
+      };
+      loop();
+    } catch (e) {}
+  },
+  stop() { if (this.mr && this.mr.state !== 'inactive') this.mr.stop(); },
+  async finish() {
+    clearInterval(this.timer); cancelAnimationFrame(this.raf);
+    if (this.ctx) { try { this.ctx.close(); } catch (e) {} this.ctx = null; }
+    this.stream && this.stream.getTracks().forEach((t) => t.stop());
+    $('#recBtn').classList.remove('recording'); $('#recBtn').textContent = '🎤'; $('#recBtn').title = 'התחלת הקלטה';
+    $('#meterBar').style.width = '0';
+    $('#recHint').textContent = 'לחץ על המיקרופון כדי להתחיל, ושוב כדי לעצור ולתמלל.';
+    const secs = (Date.now() - this.t0) / 1000;
+    const blob = new Blob(this.chunks, { type: (this.mr.mimeType || 'audio/webm').split(';')[0] });
+    this.mr = null;
+    if (secs < 0.8 || !blob.size) { toast('ההקלטה קצרה מדי'); return; }
+    const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : 'webm';
+    const d = new Date();
+    const title = `הקלטה ${d.toLocaleDateString('he-IL')} ${d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`;
+    const id = await Queue.add(blob, `recording.${ext}`, $('#langSel').value, title);
+    const r = await DB.get('recs', id); if (r) { r.duration = secs; await DB.put('recs', r); }
+    toast('ההקלטה נוספה לתור התמלול');
+  }
+};
+$('#recBtn').onclick = () => Rec.toggle();
+
+/* =========================================================
+   LIBRARY
+   ========================================================= */
+let libFolder = 'all';
+async function folders() { return (await DB.all('folders')).sort((a, b) => a.name.localeCompare(b.name, 'he')); }
+function folderOptions(list, sel) {
+  return `<option value="">ללא תיקייה</option>` + list.map((f) => `<option value="${f.id}" ${f.id === sel ? 'selected' : ''}>${esc(f.name)}</option>`).join('');
+}
+function highlight(text, q) {
+  const t = esc(text);
+  if (!q) return t;
+  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/&/g, '&amp;').replace(/</g, '&lt;'), 'gi');
+  return t.replace(re, (m) => `<mark>${m}</mark>`);
+}
+function snippetFor(text, q) {
+  if (!q) return text.slice(0, 220);
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return text.slice(0, 220);
+  const s = Math.max(0, i - 80);
+  return (s ? '…' : '') + text.slice(s, i + 140);
+}
+async function renderLibrary() {
+  const [recs, fl] = await Promise.all([DB.all('recs'), folders()]);
+  const count = (fid) => recs.filter((r) => fid === 'all' ? true : fid === 'none' ? !r.folderId : r.folderId === fid).length;
+  $('#folderList').innerHTML =
+    [['all', '📂 הכל'], ['none', '📄 ללא תיקייה'], ...fl.map((f) => [f.id, '📁 ' + f.name])].map(([id, name]) =>
+      `<div class="row" style="gap:.2em;flex-wrap:nowrap"><button class="f ${libFolder === id ? 'active' : ''}" data-folder="${id}"><span>${esc(name)}</span><span class="muted">${count(id)}</span></button>
+      ${id !== 'all' && id !== 'none' ? `<button class="btn small" title="מחיקת התיקייה" data-delfolder="${id}" style="padding:.1em .45em">✕</button>` : ''}</div>`).join('');
+  const q = $('#searchBox').value.trim();
+  let list = recs.filter((r) => libFolder === 'all' ? true : libFolder === 'none' ? !r.folderId : r.folderId === libFolder);
+  if (q) {
+    const ql = q.toLowerCase();
+    list = list.filter((r) => [r.title, r.text, r.summary, (r.tags || []).join(' ')].join(' ').toLowerCase().includes(ql));
+  }
+  list.sort((a, b) => b.createdAt - a.createdAt);
+  const fmap = Object.fromEntries(fl.map((f) => [f.id, f.name]));
+  $('#recList').innerHTML = list.length ? list.map((r) => `
+    <div class="rec-card" data-rec="${r.id}">
+      <div class="row"><span class="title grow">${highlight(r.title, q)}</span>
+        ${r.status === 'done' ? '' : r.status === 'error' ? '<span class="badge err">נכשל</span>' : '<span class="badge warn">בתור</span>'}
+        <span class="badge">${LANGS[r.lang] || ''}</span></div>
+      <div class="muted" style="font-size:.85em">${fmtDate(r.createdAt)} · ${fmtTime(r.duration)}${r.folderId && fmap[r.folderId] ? ' · 📁 ' + esc(fmap[r.folderId]) : ''}</div>
+      <div>${(r.tags || []).map((t) => `<span class="tag">#${highlight(t, q)}</span>`).join('')}</div>
+      <div class="snippet">${highlight(snippetFor(r.text || r.error || '', q), q)}</div>
+      <div class="row" style="margin-top:.4em" onclick="event.stopPropagation()">
+        <select data-move="${r.id}" style="width:auto;padding:.25em .5em;font-size:.9em">${folderOptions(fl, r.folderId)}</select>
+      </div>
+    </div>`).join('') : `<div class="card muted">${q ? 'לא נמצאו תוצאות לחיפוש.' : 'אין עדיין הקלטות כאן.'}</div>`;
+}
+$('#folderList').addEventListener('click', async (e) => {
+  const d = e.target.closest('[data-delfolder]');
+  if (d) {
+    const f = (await DB.all('folders')).find((x) => x.id === d.dataset.delfolder);
+    if (!(await confirmBox(`למחוק את התיקייה "${f ? f.name : ''}"? ההקלטות שבה לא יימחקו (הן יעברו ל"ללא תיקייה").`))) return;
+    const recs = await DB.all('recs');
+    for (const r of recs) if (r.folderId === d.dataset.delfolder) { r.folderId = null; await DB.put('recs', r); }
+    await DB.del('folders', d.dataset.delfolder);
+    if (libFolder === d.dataset.delfolder) libFolder = 'all';
+    return renderLibrary();
+  }
+  const b = e.target.closest('[data-folder]'); if (b) { libFolder = b.dataset.folder; renderLibrary(); }
+});
+$('#newFolderForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = $('#newFolderName').value.trim(); if (!name) return;
+  const exists = (await DB.all('folders')).find((f) => f.name === name);
+  if (exists) { toast('כבר יש תיקייה בשם הזה'); return; }
+  await DB.put('folders', { id: uid(), name, createdAt: Date.now() });
+  $('#newFolderName').value = ''; toast('התיקייה "' + name + '" נוצרה'); renderLibrary();
+});
+$('#recList').addEventListener('click', (e) => { const c = e.target.closest('[data-rec]'); if (c && !e.target.closest('select')) Detail.open(c.dataset.rec); });
+$('#recList').addEventListener('change', async (e) => {
+  const s = e.target.closest('[data-move]'); if (!s) return;
+  const r = await DB.get('recs', s.dataset.move); r.folderId = s.value || null; await DB.put('recs', r);
+  toast('ההקלטה הועברה'); renderLibrary();
+});
+let searchT; $('#searchBox').addEventListener('input', () => { clearTimeout(searchT); searchT = setTimeout(renderLibrary, 150); });
+
+/* =========================================================
+   DETAIL
+   ========================================================= */
+const Detail = {
+  id: null, rec: null, url: null, peaks: null, activeSeg: -1,
+  async open(id) {
+    const rec = await DB.get('recs', id); if (!rec) return;
+    const sameRec = this.id === id;
+    this.id = id; this.rec = rec;
+    go('detail');
+    $('#dTitle').value = rec.title;
+    $('#dLang').textContent = LANGS[rec.lang] || '';
+    $('#dMeta').textContent = fmtDate(rec.createdAt) + ' · ' + fmtTime(rec.duration);
+    $('#dFolder').innerHTML = folderOptions(await folders(), rec.folderId);
+    this.renderTags();
+    const blob = await DB.get('audio', id);
+    const player = $('#player');
+    if (!sameRec || !player.src) {
+      if (this.url) URL.revokeObjectURL(this.url);
+      this.url = blob ? URL.createObjectURL(blob) : '';
+      player.src = this.url;
+      this.peaks = rec.peaks || null;
+      drawWave();
+      if (!this.peaks && blob) {
+        decodeAudio(blob).then(async (ab) => {
+          if (this.id !== id) return;
+          this.peaks = computePeaks(ab); drawWave();
+          const r2 = await DB.get('recs', id); if (r2) { r2.peaks = this.peaks; if (!r2.duration) r2.duration = ab.duration; await DB.put('recs', r2); }
+        }).catch((e) => { console.warn('waveform decode failed', e); });
+      }
+    }
+    this.renderSummary();
+    this.renderTranscript();
+    $('#dEdit').classList.add('hidden'); $('#dTranscript').classList.remove('hidden');
+  },
+  renderTags() {
+    $('#dTags').innerHTML = (this.rec.tags || []).map((t, i) => `<span class="tag">#${esc(t)} <button data-deltag="${i}" title="הסרה">✕</button></span>`).join('');
+  },
+  renderSummary() {
+    const s = $('#dSummary');
+    if (this.rec.summary) { s.classList.remove('hidden'); s.innerHTML = '<b>✨ סיכום</b>\n' + esc(this.rec.summary); } else s.classList.add('hidden');
+  },
+  renderTranscript() {
+    const r = this.rec;
+    const st = $('#dStatus');
+    if (r.status === 'queued' || r.status === 'processing') st.innerHTML = `<p><span class="spinner"></span> ${esc(r.progress || 'ממתין לתמלול…')}</p>`;
+    else if (r.status === 'error') st.innerHTML = `<p class="err-text">❌ ${esc(r.error)}</p>`;
+    else st.innerHTML = '';
+    this.activeSeg = -1;
+    if (r.segments && r.segments.length && !r.edited) {
+      $('#dTranscript').innerHTML = r.segments.map((s, i) => `<span class="seg" data-seg="${i}" title="לחץ לניגון מ-${fmtTime(s.start)}"><span class="seg-time">${fmtTime(s.start)}</span>${esc(s.text)}</span> `).join('');
+    } else {
+      $('#dTranscript').innerHTML = esc(r.text || '').replace(/\n/g, '<br>');
+    }
+  },
+  async save() { this.rec.updatedAt = Date.now(); await DB.put('recs', this.rec); }
+};
+$('#backToLib').onclick = () => go('library');
+$('#dTitle').addEventListener('change', async () => { Detail.rec.title = $('#dTitle').value.trim() || 'הקלטה'; await Detail.save(); toast('השם נשמר'); });
+$('#dFolder').addEventListener('change', async () => { Detail.rec.folderId = $('#dFolder').value || null; await Detail.save(); toast('ההקלטה הועברה לתיקייה'); });
+$('#dTagInput').addEventListener('keydown', async (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const t = $('#dTagInput').value.trim().replace(/^#/, ''); if (!t) return;
+  Detail.rec.tags = Detail.rec.tags || [];
+  if (!Detail.rec.tags.includes(t)) Detail.rec.tags.push(t);
+  $('#dTagInput').value = ''; await Detail.save(); Detail.renderTags(); toast('התגית נוספה');
+});
+$('#dTags').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-deltag]'); if (!b) return;
+  Detail.rec.tags.splice(+b.dataset.deltag, 1); await Detail.save(); Detail.renderTags();
+});
+$('#dTranscript').addEventListener('click', (e) => {
+  const s = e.target.closest('[data-seg]'); if (!s) return;
+  const seg = Detail.rec.segments[+s.dataset.seg];
+  const p = $('#player'); p.currentTime = seg.start + 0.01; p.play().catch(() => {});
+});
+$('#player').addEventListener('timeupdate', () => {
+  const p = $('#player'), segs = Detail.rec && Detail.rec.segments || [];
+  drawWave();
+  if (!segs.length || Detail.rec.edited) return;
+  const t = p.currentTime;
+  let idx = segs.findIndex((s) => t >= s.start && t < s.end);
+  if (idx !== Detail.activeSeg) {
+    $$('#dTranscript .seg.active').forEach((x) => x.classList.remove('active'));
+    if (idx >= 0) { const el = $(`#dTranscript [data-seg="${idx}"]`); if (el) el.classList.add('active'); }
+    Detail.activeSeg = idx;
+  }
+});
+function drawWave() {
+  const c = $('#wave'); if (!c) return;
+  const w = c.clientWidth, h = c.clientHeight; if (!w) return;
+  const dpr = window.devicePixelRatio || 1;
+  c.width = w * dpr; c.height = h * dpr;
+  const g = c.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
+  const peaks = Detail.peaks;
+  const cs = getComputedStyle(document.body);
+  const col = cs.getPropertyValue('--primary').trim(), mut = cs.getPropertyValue('--muted').trim();
+  if (!peaks) { g.fillStyle = mut; g.font = '14px sans-serif'; g.textAlign = 'center'; g.fillText('טוען גל קול…', w / 2, h / 2 + 5); return; }
+  const p = $('#player'); const dur = p.duration || Detail.rec.duration || 1; const prog = Math.min(1, (p.currentTime || 0) / dur);
+  const bars = Math.floor(w / 3), mid = h / 2;
+  for (let i = 0; i < bars; i++) {
+    const v = peaks[Math.floor(i / bars * peaks.length)] || 0;
+    const bh = Math.max(2, v * (h - 10));
+    g.fillStyle = i / bars <= prog ? col : mut;
+    g.globalAlpha = i / bars <= prog ? 1 : 0.45;
+    g.fillRect(i * 3, mid - bh / 2, 2, bh);
+  }
+  g.globalAlpha = 1;
+}
+$('#waveWrap').addEventListener('click', (e) => {
+  const p = $('#player'); const r = e.currentTarget.getBoundingClientRect();
+  const dur = p.duration || Detail.rec.duration; if (!dur || !isFinite(dur)) return;
+  p.currentTime = ((e.clientX - r.left) / r.width) * dur; p.play().catch(() => {}); drawWave();
+});
+window.addEventListener('resize', () => { if (currentPage === 'detail') drawWave(); });
+
+$('#sumBtn').onclick = async () => {
+  const r = Detail.rec; if (!r.text) return toast('אין עדיין תמלול לסכם');
+  const b = $('#sumBtn'); b.disabled = true; b.innerHTML = '<span class="spinner"></span> מסכם…';
+  try {
+    const { summary, model } = await summarize(r.text);
+    r.summary = summary; r.summaryModel = model; await Detail.save(); Detail.renderSummary(); toast('הסיכום מוכן (' + model + ')');
+  } catch (err) { console.error(err); toast('❌ הסיכום נכשל: ' + err.message, 7000); }
+  finally { b.disabled = false; b.textContent = '✨ סיכום אוטומטי'; }
+};
+$('#copyBtn').onclick = async () => {
+  try { await navigator.clipboard.writeText(Detail.rec.text || ''); toast('הטקסט הועתק'); } catch (e) { toast('ההעתקה נכשלה'); }
+};
+$('#editBtn').onclick = () => { $('#dEditText').value = Detail.rec.text || ''; $('#dEdit').classList.remove('hidden'); $('#dTranscript').classList.add('hidden'); };
+$('#cancelEditBtn').onclick = () => { $('#dEdit').classList.add('hidden'); $('#dTranscript').classList.remove('hidden'); };
+$('#saveEditBtn').onclick = async () => {
+  const t = $('#dEditText').value;
+  if (t !== Detail.rec.text) { Detail.rec.text = t; Detail.rec.edited = true; await Detail.save(); }
+  $('#dEdit').classList.add('hidden'); $('#dTranscript').classList.remove('hidden'); Detail.renderTranscript(); toast('נשמר');
+};
+$('#retryBtn').onclick = async () => {
+  const r = await DB.get('recs', Detail.id); r.edited = false; await DB.put('recs', r);
+  await retryRec(Detail.id); toast('נשלח לתמלול מחדש'); Detail.open(Detail.id);
+};
+$('#delBtn').onclick = async () => {
+  if (!(await confirmBox(`למחוק את "${Detail.rec.title}" לצמיתות (כולל קובץ השמע)?`))) return;
+  $('#player').pause(); await DB.del('recs', Detail.id); await DB.del('audio', Detail.id); queueShown.delete(Detail.id);
+  Detail.id = null; toast('נמחק'); go('library'); renderQueue();
+};
+
+/* =========================================================
+   EXPORTS
+   ========================================================= */
+function safeName(s) { return (s || 'תמלול').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 80); }
+function download(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+}
+function loadScript(src) {
+  return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('טעינת ספרייה נכשלה – בדוק חיבור לאינטרנט')); document.head.appendChild(s); });
+}
+async function libXLSX() { if (!window.XLSX) await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'); return window.XLSX; }
+async function libDOCX() { if (!window.docx) await loadScript('https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js'); return window.docx; }
+async function libPDF() { if (!window.html2pdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'); return window.html2pdf; }
+function rowsFor(r) {
+  if (r.segments && r.segments.length && !r.edited) return r.segments.map((s) => [fmtTime(s.start), fmtTime(s.end), s.text]);
+  return (r.text || '').split(/\n+/).filter(Boolean).map((t) => ['', '', t]);
+}
+async function exportXlsx(recs, fileName, asLibrary = false) {
+  const XLSX = await libXLSX();
+  const wb = XLSX.utils.book_new();
+  wb.Workbook = { Views: [{ RTL: true }] };
+  if (!asLibrary) {
+    const r = recs[0];
+    const data = [['שם', r.title], ['תאריך', fmtDate(r.createdAt)], ['משך', fmtTime(r.duration)], ['שפה', LANGS[r.lang] || ''], ['תגיות', (r.tags || []).join(', ')], [],
+      ['התחלה', 'סוף', 'טקסט'], ...rowsFor(r)];
+    if (r.summary) data.push([], ['סיכום', r.summary]);
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 100 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'תמלול');
+  } else {
+    const fl = Object.fromEntries((await folders()).map((f) => [f.id, f.name]));
+    const data = [['שם', 'תאריך', 'משך', 'שפה', 'תיקייה', 'תגיות', 'תמלול', 'סיכום'],
+      ...recs.map((r) => [r.title, fmtDate(r.createdAt), fmtTime(r.duration), LANGS[r.lang] || '', fl[r.folderId] || '', (r.tags || []).join(', '), r.text || '', r.summary || ''])];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [{ wch: 28 }, { wch: 18 }, { wch: 9 }, { wch: 9 }, { wch: 14 }, { wch: 18 }, { wch: 90 }, { wch: 60 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'ספרייה');
+  }
+  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  download(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName);
+}
+async function exportDocx(r) {
+  const d = await libDOCX();
+  const P = (text, opts = {}) => new d.Paragraph(Object.assign({ bidirectional: true, alignment: d.AlignmentType.RIGHT, spacing: { after: 120 },
+    children: [new d.TextRun({ text, rightToLeft: true, font: 'Arial', size: opts.size || 24, bold: !!opts.bold, color: opts.color })] }, opts.p || {}));
+  const kids = [
+    P(r.title, { size: 36, bold: true }),
+    P(`${fmtDate(r.createdAt)} · ${fmtTime(r.duration)} · ${LANGS[r.lang] || ''}${(r.tags || []).length ? ' · ' + r.tags.map((t) => '#' + t).join(' ') : ''}`, { size: 20, color: '777777' })
+  ];
+  if (r.summary) { kids.push(P('סיכום', { size: 28, bold: true })); r.summary.split('\n').filter(Boolean).forEach((l) => kids.push(P(l))); }
+  kids.push(P('תמלול', { size: 28, bold: true }));
+  if (r.segments && r.segments.length && !r.edited) r.segments.forEach((s) => kids.push(new d.Paragraph({ bidirectional: true, alignment: d.AlignmentType.RIGHT, spacing: { after: 100 },
+    children: [new d.TextRun({ text: `[${fmtTime(s.start)}] `, rightToLeft: true, font: 'Arial', size: 18, color: '888888' }), new d.TextRun({ text: s.text, rightToLeft: true, font: 'Arial', size: 24 })] })));
+  else (r.text || '').split('\n').filter(Boolean).forEach((l) => kids.push(P(l)));
+  const doc = new d.Document({ creator: 'תמלול', title: r.title, sections: [{ properties: {}, children: kids }] });
+  download(await d.Packer.toBlob(doc), safeName(r.title) + '.docx');
+}
+async function exportPdf(r) {
+  const html2pdf = await libPDF();
+  const el = document.createElement('div');
+  el.dir = 'rtl';
+  el.style.cssText = 'font-family:Arial,"Segoe UI",sans-serif;color:#111;background:#fff;padding:24px;width:720px;line-height:1.8;font-size:15px;direction:rtl;text-align:right';
+  const body = (r.segments && r.segments.length && !r.edited)
+    ? r.segments.map((s) => `<p style="margin:0 0 6px"><span style="color:#888;font-size:11px">[${fmtTime(s.start)}]</span> ${esc(s.text)}</p>`).join('')
+    : esc(r.text || '').split('\n').map((l) => `<p style="margin:0 0 6px">${l}</p>`).join('');
+  el.innerHTML = `<h1 style="font-size:22px;margin:0 0 4px">${esc(r.title)}</h1>
+    <div style="color:#777;font-size:12px;margin-bottom:14px">${fmtDate(r.createdAt)} · ${fmtTime(r.duration)} · ${LANGS[r.lang] || ''} ${(r.tags || []).map((t) => '#' + esc(t)).join(' ')}</div>
+    ${r.summary ? `<h2 style="font-size:17px;margin:10px 0 4px">סיכום</h2><div style="white-space:pre-wrap;background:#f1f1fb;padding:10px;border-radius:8px">${esc(r.summary)}</div>` : ''}
+    <h2 style="font-size:17px;margin:14px 0 6px">תמלול</h2>${body}`;
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:fixed;left:-10000px;top:0;';
+  holder.appendChild(el); document.body.appendChild(holder);
+  try {
+    const blob = await html2pdf().set({ margin: 10, filename: safeName(r.title) + '.pdf', image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] } }).from(el).outputPdf('blob');
+    download(blob, safeName(r.title) + '.pdf');
+  } finally { holder.remove(); }
+}
+async function runExport(btn, fn) {
+  const old = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try { await fn(); toast('הקובץ ירד ✅'); } catch (err) { console.error(err); toast('❌ הייצוא נכשל: ' + err.message, 6000); }
+  finally { btn.disabled = false; btn.textContent = old; }
+}
+$('#xlsxBtn').onclick = (e) => runExport(e.currentTarget, () => exportXlsx([Detail.rec], safeName(Detail.rec.title) + '.xlsx'));
+$('#docxBtn').onclick = (e) => runExport(e.currentTarget, () => exportDocx(Detail.rec));
+$('#pdfBtn').onclick = (e) => runExport(e.currentTarget, () => exportPdf(Detail.rec));
+$('#txtBtn').onclick = () => { download(new Blob(['\ufeff' + Detail.rec.title + '\n\n' + (Detail.rec.summary ? 'סיכום:\n' + Detail.rec.summary + '\n\n' : '') + (Detail.rec.text || '')], { type: 'text/plain;charset=utf-8' }), safeName(Detail.rec.title) + '.txt'); };
+$('#exportAllXlsx').onclick = (e) => runExport(e.currentTarget, async () => {
+  const recs = (await DB.all('recs')).sort((a, b) => b.createdAt - a.createdAt);
+  if (!recs.length) throw new Error('אין הקלטות לייצוא');
+  await exportXlsx(recs, 'ספריית_תמלולים.xlsx', true);
+});
+
+/* =========================================================
+   STATS
+   ========================================================= */
+function bars(el, entries, fmt) {
+  const max = Math.max(1, ...entries.map((e) => e[1]));
+  el.innerHTML = entries.length ? entries.map(([k, v]) => `<div class="bar-row"><span class="lbl">${esc(k)}</span><span class="bar"><div style="width:${(v / max) * 100}%"></div></span><span class="val">${fmt(v)}</span></div>`).join('') : '<p class="muted">אין נתונים עדיין</p>';
+}
+async function renderStats() {
+  const [recs, fl] = await Promise.all([DB.all('recs'), folders()]);
+  const done = recs.filter((r) => r.status === 'done');
+  const totalSec = done.reduce((a, r) => a + (r.duration || 0), 0);
+  const words = done.reduce((a, r) => a + (r.text ? r.text.split(/\s+/).filter(Boolean).length : 0), 0);
+  const week = recs.filter((r) => r.createdAt > Date.now() - 7 * 864e5).length;
+  const cards = [['הקלטות', recs.length], ['תומללו בהצלחה', done.length], ['דקות שתומללו', fmtMinutes(totalSec)], ['מילים', words.toLocaleString('he-IL')],
+    ['השבוע', week], ['תיקיות', fl.length], ['עם סיכום', recs.filter((r) => r.summary).length], ['נכשלו', recs.filter((r) => r.status === 'error').length]];
+  $('#statCards').innerHTML = cards.map(([k, v]) => `<div class="card stat"><div class="num">${v}</div><div class="muted">${k}</div></div>`).join('');
+  const byLang = {}; recs.forEach((r) => { const k = LANGS[r.lang] || 'אחר'; byLang[k] = (byLang[k] || 0) + 1; });
+  bars($('#statLang'), Object.entries(byLang).sort((a, b) => b[1] - a[1]), (v) => v + ' הקלטות');
+  const fmap = Object.fromEntries(fl.map((f) => [f.id, f.name])); const byF = {};
+  recs.forEach((r) => { const k = r.folderId && fmap[r.folderId] ? fmap[r.folderId] : 'ללא תיקייה'; byF[k] = (byF[k] || 0) + 1; });
+  bars($('#statFolder'), Object.entries(byF).sort((a, b) => b[1] - a[1]), (v) => v + ' הקלטות');
+  const months = [];
+  for (let i = 5; i >= 0; i--) { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); months.push([d.getFullYear() + '-' + d.getMonth(), d.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' }), 0]); }
+  done.forEach((r) => { const d = new Date(r.createdAt); const m = months.find((x) => x[0] === d.getFullYear() + '-' + d.getMonth()); if (m) m[2] += r.duration || 0; });
+  bars($('#statMonth'), months.map((m) => [m[1], m[2]]), (v) => fmtMinutes(v) + ' דק׳');
+}
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+async function renderSettings() {
+  const s = LS.get('settings', {}), a = Auth.user();
+  $('#groqKey').value = s.groqKey || '';
+  $('#whisperModel').value = setting('whisperModel');
+  $('#defLang').value = setting('defLang');
+  $('#ejService').value = setting('emailjsService');
+  $('#ejTemplate').value = setting('emailjsTemplate');
+  $('#ejKey').value = setting('emailjsKey');
+  $('#accInfo').textContent = a ? `משתמש: ${a.username}` : '';
+  $('#accEmail').value = a ? a.email : '';
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const e = await navigator.storage.estimate();
+      $('#storageInfo').textContent = `נפח בשימוש במכשיר: ${(e.usage / 1048576).toFixed(1)} MB מתוך ${(e.quota / 1073741824).toFixed(1)} GB`;
+    }
+  } catch (e) {}
+}
+$('#showKeyBtn').onclick = () => { const i = $('#groqKey'); i.type = i.type === 'password' ? 'text' : 'password'; };
+$('#saveGroqBtn').onclick = () => {
+  saveSettings({ groqKey: $('#groqKey').value.trim(), whisperModel: $('#whisperModel').value, defLang: $('#defLang').value });
+  $('#langSel').value = setting('defLang'); chatModelCache = null; updateKeyWarn();
+  $('#groqMsg').innerHTML = '<span class="ok-text">נשמר ✓</span>';
+};
+$('#testGroqBtn').onclick = async () => {
+  saveSettings({ groqKey: $('#groqKey').value.trim() }); updateKeyWarn();
+  $('#groqMsg').innerHTML = '<span class="spinner"></span>';
+  try {
+    chatModelCache = null;
+    const { pick, ids } = await pickChatModel();
+    const hasW = ids.includes(setting('whisperModel'));
+    $('#groqMsg').innerHTML = `<span class="ok-text">החיבור תקין ✓</span> <span class="hint">מודל סיכום: ${esc(pick)}${hasW ? '' : ' · ⚠️ מודל התמלול לא ברשימה'}</span>`;
+  } catch (err) { $('#groqMsg').innerHTML = `<span class="err-text">${esc(err.message)}</span>`; }
+};
+$('#saveAccBtn').onclick = async () => {
+  const a = Auth.user(); const em = $('#accEmail').value.trim(), old = $('#accOld').value, nw = $('#accNew').value;
+  if (!/^\S+@\S+\.\S+$/.test(em)) { $('#accMsg').innerHTML = '<span class="err-text">מייל לא תקין</span>'; return; }
+  a.email = em;
+  if (nw) {
+    if ((await hashPass(old, a.salt)) !== a.hash) { $('#accMsg').innerHTML = '<span class="err-text">הסיסמה הנוכחית שגויה</span>'; return; }
+    if (nw.length < 4) { $('#accMsg').innerHTML = '<span class="err-text">סיסמה קצרה מדי</span>'; return; }
+    a.salt = uid(); a.hash = await hashPass(nw, a.salt);
+  }
+  LS.set('auth', a); $('#accOld').value = ''; $('#accNew').value = '';
+  $('#accMsg').innerHTML = '<span class="ok-text">נשמר ✓</span>';
+};
+$('#saveEjBtn').onclick = () => {
+  saveSettings({ emailjsService: $('#ejService').value.trim(), emailjsTemplate: $('#ejTemplate').value.trim(), emailjsKey: $('#ejKey').value.trim() });
+  $('#ejMsg').innerHTML = '<span class="ok-text">נשמר ✓</span>';
+};
+$('#testEjBtn').onclick = async () => {
+  $('#ejMsg').innerHTML = '<span class="spinner"></span>';
+  try { await sendEmail(Auth.user().email, 'בדיקה – מערכת תמלול', 'זהו מייל בדיקה ממערכת התמלול. אם קיבלת אותו – שליחת המיילים עובדת ✅'); $('#ejMsg').innerHTML = '<span class="ok-text">נשלח ✓ בדוק את תיבת הדואר</span>'; }
+  catch (err) { $('#ejMsg').innerHTML = `<span class="err-text">${esc(err.message)}</span>`; }
+};
+$('#backupBtn').onclick = async () => {
+  const recs = (await DB.all('recs')).map((r) => Object.assign({}, r, { peaks: undefined }));
+  const data = { app: 'tamlul', version: APP_VERSION, exported: new Date().toISOString(), folders: await DB.all('folders'), recs };
+  download(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }), `tamlul-backup-${new Date().toISOString().slice(0, 10)}.json`);
+};
+$('#restoreBtn').onclick = () => $('#restoreInput').click();
+$('#restoreInput').onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (data.app !== 'tamlul') throw new Error('זה לא קובץ גיבוי של תמלול');
+    for (const fo of data.folders || []) await DB.put('folders', fo);
+    let n = 0;
+    for (const r of data.recs || []) { if (!(await DB.get('recs', r.id))) { if (r.status !== 'done') r.status = r.text ? 'done' : 'error'; await DB.put('recs', r); n++; } }
+    toast(`שוחזרו ${n} הקלטות`);
+  } catch (err) { toast('❌ ' + err.message, 5000); }
+};
+function updateKeyWarn() { $('#noKeyWarn').classList.toggle('hidden', !!groqKey()); }
+
+/* =========================================================
+   INSTALL (PWA) + SHARE TARGET + SERVICE WORKER
+   ========================================================= */
+let deferredPrompt = null;
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; $('#installBtn').classList.remove('hidden'); });
+window.addEventListener('appinstalled', () => { deferredPrompt = null; $('#installBtn').classList.add('hidden'); toast('האפליקציה הותקנה ✅'); });
+$('#installBtn').onclick = async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (outcome === 'accepted') $('#installBtn').classList.add('hidden');
+  } else if (isIOS()) {
+    modal('<h3>התקנה באייפון</h3><p>1. לחץ על כפתור השיתוף <b>⬆️</b> בתחתית ספארי.<br>2. בחר <b>"הוסף למסך הבית"</b>.<br>3. לחץ <b>"הוסף"</b>.</p>', { cancelText: '' });
+  }
+};
+if (isIOS() && !isStandalone()) $('#installBtn').classList.remove('hidden');
+
+async function pickUpShared() {
+  if (!('caches' in window)) return;
+  try {
+    const cache = await caches.open('tamlul-share');
+    const keys = await cache.keys();
+    if (!keys.length) return;
+    const files = [];
+    for (const k of keys) {
+      const res = await cache.match(k);
+      const blob = await res.blob();
+      const name = decodeURIComponent(res.headers.get('X-File-Name') || 'הקלטה משותפת');
+      files.push(new File([blob], name, { type: blob.type }));
+      await cache.delete(k);
+    }
+    if (files.length) { $('#langSel').value = setting('defLang'); addFiles(files); go('home'); }
+  } catch (e) { console.warn(e); }
+  if (location.search.includes('share=')) history.replaceState(null, '', location.pathname);
+}
+
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW registration failed', e));
+}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+let entered = false;
+async function enterApp() {
+  $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden');
+  if (entered) return;
+  entered = true;
+  applyTheme();
+  $('#langSel').value = setting('defLang');
+  updateKeyWarn();
+  await DB.open();
+  await Queue.resume();
+  await renderQueue();
+  await pickUpShared();
+  if (!groqKey()) go('settings');
+}
+(function boot() {
+  applyTheme();
+  if (Auth.loggedIn()) enterApp(); else showAuth();
+})();
+</script>
+</body>
+</html>
