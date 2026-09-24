@@ -6,6 +6,8 @@
 <title>תמלול פלוס – מערכת תמלול הקלטות</title>
 <meta name="description" content="תמלול הקלטות בעברית, יידיש ואנגלית">
 <meta name="theme-color" content="#4f46e5">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -134,6 +136,58 @@ body:not(.is-admin) .admin-only{display:none!important}
 .user-row{display:flex;align-items:center;gap:.6em;flex-wrap:wrap;padding:.6em 0;border-bottom:1px solid var(--line)}
 .user-row:last-child{border-bottom:none}
 .hint{font-size:.88em;color:var(--muted);margin-top:.3em}
+
+/* ===== Visual refresh v1.2 ===== */
+body{font-family:"Heebo","Segoe UI",Arial,sans-serif}
+:root{--primary:#4f46e5;--primary-2:#7c3aed;--radius:16px;--shadow:0 1px 2px rgba(20,20,60,.04),0 8px 24px rgba(20,20,60,.06)}
+body{background:radial-gradient(1200px 500px at 90% -10%,rgba(124,58,237,.10),transparent 60%),radial-gradient(900px 400px at -10% 0%,rgba(79,70,229,.10),transparent 55%),var(--bg);background-attachment:fixed}
+header.top{background:rgba(255,255,255,.78);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px)}
+body.dark header.top{background:rgba(28,30,43,.78)}
+header.top .logo{background:linear-gradient(135deg,var(--primary),var(--primary-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+header.top .logo img{filter:drop-shadow(0 3px 8px rgba(79,70,229,.35))}
+nav.tabs{background:var(--primary-soft);padding:4px;border-radius:12px}
+nav.tabs button{border-radius:9px;transition:.15s}
+nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 1px 4px rgba(20,20,60,.12)}
+.card{transition:box-shadow .2s,transform .2s}
+.card h3{font-weight:800}
+.rec-card{transition:.15s}
+.rec-card:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.hero{display:flex;align-items:center;gap:14px;margin:4px 0 16px}
+.hero h1{margin:0;font-size:1.55em;font-weight:800}
+.hero p{margin:.1em 0 0;color:var(--muted)}
+.lang-pills{display:flex;gap:6px;flex-wrap:wrap}
+.lang-pills button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:.35em .95em;font-weight:600;color:var(--muted);transition:.15s}
+.lang-pills button.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(79,70,229,.3)}
+.translation{border:1px solid var(--line);border-radius:12px;padding:1em;margin-top:.8em;background:var(--card);line-height:1.9;white-space:pre-wrap}
+.translation .t-head{display:flex;align-items:center;gap:.5em;margin-bottom:.4em;font-weight:700}
+/* Auth screen */
+#auth{background:linear-gradient(135deg,#312e81 0%,#4f46e5 45%,#7c3aed 100%);position:relative;overflow:hidden}
+#auth::before,#auth::after{content:"";position:absolute;border-radius:50%;filter:blur(10px);opacity:.35;background:#a78bfa}
+#auth::before{width:420px;height:420px;top:-120px;left:-120px}
+#auth::after{width:320px;height:320px;bottom:-110px;right:-90px;background:#22d3ee;opacity:.22}
+.auth-card{position:relative;z-index:1;width:100%;max-width:430px;background:var(--card);border-radius:22px;padding:34px 30px 26px;box-shadow:0 24px 60px rgba(15,10,60,.35);text-align:center}
+.auth-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px}
+.auth-brand img{width:52px;height:52px;border-radius:14px;box-shadow:0 6px 18px rgba(79,70,229,.35)}
+.auth-name{font-size:1.45em;font-weight:800;text-align:start}
+.auth-sub{font-size:.82em;color:var(--muted);text-align:start}
+.auth-card h2{margin:.2em 0 .1em;font-size:1.45em;color:var(--text)}
+.auth-lead{color:var(--muted);margin:0 0 18px;font-size:.95em}
+.fg{text-align:start;margin-bottom:14px}
+.fg label{margin:0 0 6px;font-size:.9em}
+.fg input{padding:.75em .9em;border-radius:12px}
+.btn-auth{width:100%;border:none;border-radius:12px;padding:.85em;font-size:1.05em;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-2));box-shadow:0 8px 20px rgba(79,70,229,.35);margin-top:6px;transition:.15s}
+.btn-auth:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.btn-auth:disabled{opacity:.6;transform:none}
+.auth-link{display:inline-block;margin-top:14px;color:var(--primary);text-decoration:none;font-size:.92em;cursor:pointer}
+.auth-link:hover{text-decoration:underline}
+.auth-links{display:flex;justify-content:space-between}
+.pass-wrap{position:relative}
+.pass-wrap input{padding-inline-end:2.6em}
+.pass-wrap .eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);border:none;background:none;font-size:1.05em;opacity:.7}
+.otp{display:flex;gap:10px;justify-content:center}
+.otp input{width:58px!important;height:64px;text-align:center;font-size:1.8em;font-weight:800;border-radius:14px;padding:0!important;border:2px solid var(--line)}
+.otp input:focus{border-color:var(--primary)}
+.auth-msg{font-weight:600;font-size:.93em}
 @media print{header.top,.toolbar{display:none}}
 </style>
 </head>
@@ -141,62 +195,50 @@ body:not(.is-admin) .admin-only{display:none!important}
 
 <!-- ============ AUTH ============ -->
 <div id="auth" class="hidden">
-  <div class="card">
-    <div class="logo"><img src="icon-192.png" alt=""> תמלול פלוס</div>
+  <div class="auth-card">
+    <div class="auth-brand"><img src="icon-192.png" alt=""><div><div class="auth-name">תמלול פלוס</div><div class="auth-sub">תמלול הקלטות · עברית · יידיש · אנגלית</div></div></div>
 
     <form id="setupForm" class="hidden" autocomplete="on">
-      <h3 style="margin-top:1em">הגדרה ראשונה – יצירת מנהל</h3>
-      <p class="muted">זו הפעלה ראשונה של המערכת במכשיר הזה. קבע שם משתמש, סיסמה ומייל לשחזור.</p>
-      <label for="setupUser">שם משתמש</label>
-      <input id="setupUser" type="text" autocomplete="username" required>
-      <label for="setupEmail">מייל לשחזור סיסמה</label>
-      <input id="setupEmail" type="email" autocomplete="email" required>
-      <label for="setupPass">סיסמה (לפחות 4 תווים)</label>
-      <input id="setupPass" type="password" autocomplete="new-password" required>
-      <label for="setupPass2">אימות סיסמה</label>
-      <input id="setupPass2" type="password" autocomplete="new-password" required>
-      <div style="margin-top:1.2em"><button class="btn primary" type="submit">יצירה וכניסה</button></div>
+      <h2>ברוך הבא! 👋</h2>
+      <p class="auth-lead">הפעלה ראשונה – יוצרים את חשבון המנהל</p>
+      <div class="fg"><label for="setupEmail">מייל (משמש גם כשם משתמש)</label><input id="setupEmail" type="email" autocomplete="email" required></div>
+      <div class="fg"><label for="setupUser">שם לתצוגה</label><input id="setupUser" type="text" autocomplete="name" placeholder="למשל: אברהם" required></div>
+      <div class="fg"><label for="setupPass">סיסמה</label><input id="setupPass" type="password" autocomplete="new-password" required></div>
+      <div class="fg"><label for="setupPass2">אימות סיסמה</label><input id="setupPass2" type="password" autocomplete="new-password" required></div>
+      <button class="btn-auth" type="submit">יצירה וכניסה</button>
     </form>
 
     <form id="loginForm" class="hidden" autocomplete="on">
-      <h3 style="margin-top:1em">כניסה</h3>
-      <label for="loginUser">שם משתמש</label>
-      <input id="loginUser" type="text" autocomplete="username" required>
-      <label for="loginPass">סיסמה</label>
-      <input id="loginPass" type="password" autocomplete="current-password" required>
-      <div class="row" style="margin-top:1.2em">
-        <button class="btn primary" type="submit">כניסה</button>
-        <button class="btn" type="button" id="forgotBtn">שכחתי סיסמה</button>
-      </div>
+      <h2 id="loginHello">שלום, טוב לראות אותך!</h2>
+      <p class="auth-lead">כניסה למערכת התמלול</p>
+      <div class="fg"><label for="loginUser">שם משתמש (דוא"ל)</label><input id="loginUser" type="text" autocomplete="username" required></div>
+      <div class="fg"><label for="loginPass">סיסמה</label>
+        <div class="pass-wrap"><input id="loginPass" type="password" autocomplete="current-password" required><button type="button" class="eye" data-eye="loginPass" title="הצגת סיסמה">👁️</button></div></div>
+      <button class="btn-auth" type="submit">התחברות</button>
+      <a class="auth-link" id="forgotBtn" href="#">שכחת סיסמה? לחץ כאן לשחזור</a>
     </form>
 
     <form id="forgotForm" class="hidden">
-      <h3 style="margin-top:1em">שחזור סיסמה</h3>
-      <p class="muted">הזן את המייל ששמור אצל המשתמש שלך. נשלח אליו קוד בן 4 ספרות.</p>
-      <label for="forgotUser">שם משתמש (לא חובה)</label>
-      <input id="forgotUser" type="text" autocomplete="username">
-      <label for="forgotEmail">מייל</label>
-      <input id="forgotEmail" type="email" required>
-      <div class="row" style="margin-top:1.2em">
-        <button class="btn primary" type="submit" id="sendCodeBtn">שליחת קוד</button>
-        <button class="btn" type="button" data-back>חזרה לכניסה</button>
-      </div>
+      <h2>שחזור סיסמה</h2>
+      <p class="auth-lead">הזן את כתובת הדוא"ל שלך לקבלת קוד אימות בן 4 ספרות</p>
+      <div class="fg"><label for="forgotEmail">דוא"ל</label><input id="forgotEmail" type="email" autocomplete="email" required></div>
+      <button class="btn-auth" type="submit" id="sendCodeBtn">שלח קוד אימות למייל</button>
+      <a class="auth-link" href="#" data-back>חזרה להתחברות</a>
     </form>
 
     <form id="resetForm" class="hidden">
-      <h3 style="margin-top:1em">הזנת קוד וסיסמה חדשה</h3>
-      <p class="muted">שלחנו קוד בן 4 ספרות למייל. אם לא הגיע – בדוק גם בספאם ובקידומי מכירות.</p>
-      <label for="resetCode">קוד (4 ספרות)</label>
-      <input id="resetCode" type="text" inputmode="numeric" maxlength="4" pattern="\d{4}" autocomplete="one-time-code" required>
-      <label for="resetPass">סיסמה חדשה</label>
-      <input id="resetPass" type="password" autocomplete="new-password" required>
-      <label for="resetPass2">אימות סיסמה חדשה</label>
-      <input id="resetPass2" type="password" autocomplete="new-password" required>
-      <div class="row" style="margin-top:1.2em">
-        <button class="btn primary" type="submit">שמירת סיסמה חדשה</button>
-        <button class="btn" type="button" id="resendBtn">שליחת קוד חדש</button>
-        <button class="btn" type="button" data-back>ביטול</button>
-      </div>
+      <h2>איפוס סיסמה</h2>
+      <p class="auth-lead" id="resetLead">הזן את 4 הספרות שנשלחו למייל והגדר סיסמה חדשה</p>
+      <div class="fg"><label>קוד אימות</label>
+        <div class="otp" id="otp" dir="ltr">
+          <input inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="ספרה 1"><input inputmode="numeric" maxlength="1" aria-label="ספרה 2"><input inputmode="numeric" maxlength="1" aria-label="ספרה 3"><input inputmode="numeric" maxlength="1" aria-label="ספרה 4">
+        </div>
+        <input id="resetCode" type="hidden"></div>
+      <div class="fg"><label for="resetPass">סיסמה חדשה (אפשר גם מספרים בלבד)</label>
+        <div class="pass-wrap"><input id="resetPass" type="password" autocomplete="new-password" required><button type="button" class="eye" data-eye="resetPass" title="הצגת סיסמה">👁️</button></div></div>
+      <button class="btn-auth" type="submit">עדכן סיסמה והתחבר</button>
+      <div class="auth-links"><a class="auth-link" href="#" id="resendBtn">לא הגיע? שלח קוד חדש</a><a class="auth-link" href="#" data-back>ביטול</a></div>
+      <p class="hint" style="text-align:center">לא רואה את המייל? בדוק גם בספאם ובקידומי מכירות.</p>
     </form>
 
     <div class="auth-msg" id="authMsg"></div>
@@ -211,7 +253,7 @@ body:not(.is-admin) .admin-only{display:none!important}
       <button data-page="home" class="active">🎙️ תמלול</button>
       <button data-page="library">📚 ספרייה</button>
       <button data-page="stats">📊 סטטיסטיקה</button>
-      <button data-page="settings">⚙️ הגדרות</button>
+      <button data-page="settings" class="admin-only">⚙️ הגדרות</button>
     </nav>
     <div class="top-actions">
       <button class="btn small primary hidden" id="installBtn">📲 התקנה כאפליקציה</button>
@@ -227,9 +269,15 @@ body:not(.is-admin) .admin-only{display:none!important}
       <div id="noKeyWarn" class="card hidden" style="border-color:var(--warn);margin-bottom:16px">
         ⚠️ עדיין לא הוגדר מפתח Groq. <a href="#" data-goto="settings">עבור להגדרות</a> והדבק את המפתח כדי שהתמלול יעבוד.
       </div>
-      <div class="row" style="margin-bottom:12px">
-        <label for="langSel" style="margin:0">שפת ההקלטה:</label>
-        <select id="langSel" style="width:auto">
+      <div class="hero">
+        <div class="grow"><h1 id="heroHello">שלום 👋</h1><p>מקליטים, מעלים קובץ או תיקייה שלמה, והמערכת מתמללת.</p></div>
+      </div>
+      <div class="row" style="margin-bottom:14px">
+        <span style="font-weight:700">שפת ההקלטה:</span>
+        <div class="lang-pills" id="langPills">
+          <button data-lang="he">🇮🇱 עברית</button><button data-lang="yi">📜 יידיש</button><button data-lang="en">🇺🇸 אנגלית</button><button data-lang="auto">✨ זיהוי אוטומטי</button>
+        </div>
+        <select id="langSel" class="hidden">
           <option value="he">עברית</option>
           <option value="yi">יידיש</option>
           <option value="en">אנגלית</option>
@@ -310,6 +358,7 @@ body:not(.is-admin) .admin-only{display:none!important}
         <audio id="player" controls preload="metadata"></audio>
         <div class="toolbar">
           <button class="btn small primary" id="sumBtn">✨ סיכום אוטומטי</button>
+          <span class="row" style="gap:.25em"><select id="trLang" style="width:auto;padding:.25em .5em;font-size:.9em"><option value="he">לעברית</option><option value="en">לאנגלית</option><option value="yi">ליידיש</option></select><button class="btn small primary" id="trBtn">🌐 תרגום</button></span>
           <button class="btn small" id="copyBtn">📋 העתקה</button>
           <button class="btn small" id="editBtn">✏️ עריכת טקסט</button>
           <button class="btn small" id="xlsxBtn">⬇️ Excel</button>
@@ -320,6 +369,7 @@ body:not(.is-admin) .admin-only{display:none!important}
           <button class="btn small danger" id="delBtn">🗑️ מחיקה</button>
         </div>
         <div id="dSummary" class="summary hidden"></div>
+        <div id="dTranslations"></div>
         <div id="dStatus"></div>
         <div id="dTranscript" class="transcript"></div>
         <div id="dEdit" class="hidden">
@@ -433,7 +483,7 @@ body:not(.is-admin) .admin-only{display:none!important}
         <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
         <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול פלוס", וההקלטה נכנסת לתור אוטומטית.</p>
         <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
-        <p class="hint">גרסה 1.1.0</p>
+        <p class="hint">גרסה 1.2.0</p>
       </div>
     </section>
   </main>
@@ -447,7 +497,7 @@ body:not(.is-admin) .admin-only{display:none!important}
 /* =========================================================
    תמלול פלוס – מערכת תמלול הקלטות
    ========================================================= */
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const DEFAULTS = {
   emailjsService: 'service_nybca58',
   emailjsTemplate: 'template_9e88gji',
@@ -573,7 +623,8 @@ const Auth = {
     return list;
   },
   saveUsers(list) { LS.set('users', list); },
-  byName(name) { return this.users().find((u) => u.username.toLowerCase() === String(name || '').trim().toLowerCase()); },
+  byName(name) { const n = String(name || '').trim().toLowerCase(); return this.users().find((u) => u.username.toLowerCase() === n) || this.users().find((u) => (u.email || '').toLowerCase() === n); },
+  byEmail(em) { const n = String(em || '').trim().toLowerCase(); return this.users().filter((u) => (u.email || '').toLowerCase() === n); },
   current() {
     const s = LS.get('session', null);
     if (!s || s.exp < Date.now()) return null;
@@ -582,7 +633,7 @@ const Auth = {
   user() { return this.current(); },
   isAdmin() { const c = this.current(); return !!(c && c.role === 'admin'); },
   loggedIn() { return !!this.current(); },
-  startSession(u) { LS.set('session', { id: u.id, user: u.username, exp: Date.now() + 30 * 864e5 }); },
+  startSession(u) { LS.set('session', { id: u.id, user: u.username, exp: Date.now() + 30 * 864e5 }); LS.set('lastUser', { name: u.display || u.username, login: u.email || u.username }); },
   update(u) { const list = this.users().map((x) => x.id === u.id ? u : x); this.saveUsers(list); },
   logout() { LS.del('session'); location.reload(); }
 };
@@ -594,20 +645,40 @@ function showAuthForm(id) {
 }
 function showAuth() {
   $('#app').classList.add('hidden'); $('#auth').classList.remove('hidden');
+  const last = LS.get('lastUser', null);
+  if (last) { $('#loginHello').textContent = `שלום ${last.name}, טוב לראות אותך!`; $('#loginUser').value = last.login; }
   showAuthForm(Auth.users().length ? 'loginForm' : 'setupForm');
+  if (last && Auth.users().length) setTimeout(() => $('#loginPass').focus(), 60);
 }
+$$('[data-eye]').forEach((b) => b.onclick = () => { const i = $('#' + b.dataset.eye); i.type = i.type === 'password' ? 'text' : 'password'; });
+/* 4-digit code boxes */
+(function initOtp() {
+  const boxes = $$('#otp input');
+  const sync = () => { $('#resetCode').value = boxes.map((b) => b.value).join(''); };
+  boxes.forEach((b, i) => {
+    b.addEventListener('input', () => {
+      const d = b.value.replace(/\D/g, '');
+      if (d.length > 1) { d.split('').slice(0, 4 - i).forEach((c, k) => boxes[i + k].value = c); boxes[Math.min(3, i + d.length - 1)].focus(); }
+      else { b.value = d; if (d && i < 3) boxes[i + 1].focus(); }
+      sync();
+      if ($('#resetCode').value.length === 4) $('#resetPass').focus();
+    });
+    b.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !b.value && i > 0) { boxes[i - 1].focus(); boxes[i - 1].value = ''; sync(); } });
+    b.addEventListener('paste', (e) => { const t = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 4); if (t) { e.preventDefault(); t.split('').forEach((c, k) => { if (boxes[k]) boxes[k].value = c; }); sync(); (t.length === 4 ? $('#resetPass') : boxes[t.length]).focus(); } });
+  });
+})();
+function clearOtp() { $$('#otp input').forEach((b) => b.value = ''); $('#resetCode').value = ''; }
 const validEmail = (em) => /^\S+@\S+\.\S+$/.test(em);
 
 $('#setupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (Auth.users().length) return showAuthForm('loginForm');
-  const u = $('#setupUser').value.trim(), em = $('#setupEmail').value.trim(), p = $('#setupPass').value, p2 = $('#setupPass2').value;
-  if (!u) return authMsg('יש להזין שם משתמש', 'err-text');
+  const d = $('#setupUser').value.trim(), em = $('#setupEmail').value.trim(), p = $('#setupPass').value, p2 = $('#setupPass2').value;
   if (!validEmail(em)) return authMsg('כתובת המייל לא תקינה', 'err-text');
-  if (p.length < 4) return authMsg('הסיסמה צריכה להיות לפחות 4 תווים', 'err-text');
+  if (!p) return authMsg('יש להזין סיסמה', 'err-text');
   if (p !== p2) return authMsg('הסיסמאות אינן תואמות', 'err-text');
   const salt = uid();
-  const user = { id: uid(), username: u, email: em, role: 'admin', salt, hash: await hashPass(p, salt), created: Date.now() };
+  const user = { id: uid(), username: em, display: d || em.split('@')[0], email: em, role: 'admin', salt, hash: await hashPass(p, salt), created: Date.now() };
   Auth.saveUsers([user]);
   Auth.startSession(user); enterApp();
 });
@@ -619,8 +690,8 @@ $('#loginForm').addEventListener('submit', async (e) => {
   if (!u || (await hashPass(p, u.salt)) !== u.hash) return authMsg('שם משתמש או סיסמה שגויים', 'err-text');
   Auth.startSession(u); $('#loginPass').value = ''; enterApp();
 });
-$('#forgotBtn').onclick = () => { showAuthForm('forgotForm'); if ($('#loginUser').value) $('#forgotUser').value = $('#loginUser').value; };
-$$('[data-back]').forEach((b) => b.onclick = () => showAuthForm('loginForm'));
+$('#forgotBtn').onclick = (e) => { e.preventDefault(); showAuthForm('forgotForm'); const v = $('#loginUser').value.trim(); const u = v && Auth.byName(v); if (u && u.email) $('#forgotEmail').value = u.email; else if (validEmail(v)) $('#forgotEmail').value = v; };
+$$('[data-back]').forEach((b) => b.onclick = (e) => { e.preventDefault(); showAuthForm('loginForm'); });
 
 async function sendEmail(toEmail, subject, message) {
   const body = {
@@ -641,51 +712,49 @@ async function sendResetCode() {
   const users = Auth.users();
   const prev = LS.get('reset', {}) || {};
   const em = ($('#forgotEmail').value.trim() || prev.email || '').toLowerCase();
-  const un = ($('#forgotUser').value.trim() || prev.username || '').toLowerCase();
   if (!users.length) return authMsg('עדיין לא הוגדר משתמש במכשיר הזה', 'err-text');
-  let matches = users.filter((u) => (u.email || '').toLowerCase() === em);
-  if (un) matches = matches.filter((u) => u.username.toLowerCase() === un);
-  if (!matches.length) return authMsg(un ? 'לא נמצא משתמש עם שם המשתמש והמייל האלה' : 'המייל לא שמור אצל אף משתמש במערכת', 'err-text');
-  if (matches.length > 1) return authMsg('כמה משתמשים משתמשים במייל הזה – הזן גם את שם המשתמש', 'err-text');
+  if (!validEmail(em)) return authMsg('הזן כתובת דוא"ל תקינה', 'err-text');
+  const matches = Auth.byEmail(em);
+  if (!matches.length) return authMsg('כתובת הדוא"ל הזו לא רשומה במערכת', 'err-text');
   const a = matches[0];
   const code = String(Math.floor(1000 + Math.random() * 9000));
   const salt = uid();
-  LS.set('reset', { userId: a.id, username: a.username, email: a.email, salt, hash: await sha256(salt + code), exp: Date.now() + 15 * 60 * 1000, tries: 0 });
+  LS.set('reset', { userId: a.id, email: a.email, salt, hash: await sha256(salt + code), exp: Date.now() + 15 * 60 * 1000, tries: 0 });
   authMsg('שולח קוד…');
   $('#sendCodeBtn').disabled = true;
   try {
-    await sendEmail(a.email, 'קוד לשחזור סיסמה – תמלול פלוס',
-      `שלום ${a.username},\n\nקוד שחזור הסיסמה שלך למערכת "תמלול פלוס" הוא: ${code}\n\nהקוד בתוקף ל-15 דקות.\nאם לא ביקשת לשחזר סיסמה – אפשר להתעלם מהמייל.`);
-    showAuthForm('resetForm');
-    authMsg('הקוד נשלח למייל ' + a.email, 'ok-text');
+    await sendEmail(a.email, 'קוד אימות – תמלול פלוס', code);
+    showAuthForm('resetForm'); clearOtp();
+    $('#resetLead').textContent = `שלחנו קוד בן 4 ספרות אל ${a.email}. הזן אותו והגדר סיסמה חדשה.`;
+    authMsg('✅ הקוד נשלח למייל', 'ok-text');
+    setTimeout(() => $('#otp input').focus(), 80);
   } catch (err) {
     console.error(err);
     authMsg('שליחת המייל נכשלה: ' + err.message, 'err-text');
   } finally { $('#sendCodeBtn').disabled = false; }
 }
 $('#forgotForm').addEventListener('submit', (e) => { e.preventDefault(); sendResetCode(); });
-$('#resendBtn').onclick = () => sendResetCode();
+$('#resendBtn').onclick = (e) => { e.preventDefault(); sendResetCode(); };
 
 $('#resetForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const r = LS.get('reset', null);
   const a = r && Auth.users().find((u) => u.id === r.userId);
-  const code = $('#resetCode').value.trim(), p = $('#resetPass').value, p2 = $('#resetPass2').value;
+  const code = $('#resetCode').value.trim(), p = $('#resetPass').value;
   if (!r || !a) return authMsg('אין בקשת שחזור פעילה – שלח קוד מחדש', 'err-text');
   if (Date.now() > r.exp) return authMsg('תוקף הקוד פג – שלח קוד חדש', 'err-text');
   if (r.tries >= 5) return authMsg('יותר מדי ניסיונות – שלח קוד חדש', 'err-text');
+  if (code.length !== 4) return authMsg('הזן את 4 הספרות מהמייל', 'err-text');
   if ((await sha256(r.salt + code)) !== r.hash) {
-    r.tries++; LS.set('reset', r);
-    return authMsg('הקוד שגוי', 'err-text');
+    r.tries++; LS.set('reset', r); clearOtp(); $('#otp input').focus();
+    return authMsg(`קוד האימות שגוי (נשארו ${Math.max(0, 5 - r.tries)} ניסיונות)`, 'err-text');
   }
-  if (p.length < 4) return authMsg('הסיסמה צריכה להיות לפחות 4 תווים', 'err-text');
-  if (p !== p2) return authMsg('הסיסמאות אינן תואמות', 'err-text');
+  if (!p) return authMsg('יש להזין סיסמה חדשה', 'err-text');
   a.salt = uid(); a.hash = await hashPass(p, a.salt);
   Auth.update(a); LS.del('reset');
-  ['resetCode', 'resetPass', 'resetPass2'].forEach((i) => $('#' + i).value = '');
-  showAuthForm('loginForm');
-  $('#loginUser').value = a.username;
-  authMsg('הסיסמה עודכנה ✅ היכנס עם הסיסמה החדשה', 'ok-text');
+  $('#resetPass').value = ''; clearOtp();
+  toast('✅ הסיסמה עודכנה בהצלחה');
+  Auth.startSession(a); enterApp();
 });
 
 /* =========================================================
@@ -693,6 +762,7 @@ $('#resetForm').addEventListener('submit', async (e) => {
    ========================================================= */
 let currentPage = 'home';
 function go(page) {
+  if (page === 'settings' && !Auth.isAdmin()) page = 'home';
   currentPage = page;
   $$('section.page').forEach((s) => s.classList.toggle('active', s.id === 'page-' + page));
   $$('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.page === page || (page === 'detail' && b.dataset.page === 'library')));
@@ -805,6 +875,8 @@ async function whisper(blob, fileName, lang) {
   fd.append('temperature', '0');
   if (lang && lang !== 'auto') fd.append('language', lang);
   if (lang === 'he') fd.append('prompt', 'תמלול מדויק בעברית, עם סימני פיסוק.');
+  if (lang === 'yi') fd.append('prompt', 'דאָס איז אַ שמועס אויף ייִדיש. מיר רעדן יידיש.');
+  if (lang === 'en') fd.append('prompt', 'Accurate English transcription with punctuation.');
   return groqFetch('/audio/transcriptions', { method: 'POST', body: fd });
 }
 async function transcribeBlob(blob, name, lang, onProgress) {
@@ -869,6 +941,34 @@ async function summarize(text) {
   out = out.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/\*\*/g, '').trim();
   if (!out) throw new Error('המודל החזיר תשובה ריקה');
   return { summary: out, model: pick };
+}
+
+const LANG_EN = { he: 'Hebrew', yi: 'Yiddish (in Hebrew letters, standard YIVO spelling)', en: 'English' };
+function splitText(text, max = 5000) {
+  const parts = []; let cur = '';
+  for (const sent of text.split(/(?<=[.!?։\n])\s+/)) {
+    if ((cur + ' ' + sent).length > max && cur) { parts.push(cur); cur = sent; } else cur = cur ? cur + ' ' + sent : sent;
+  }
+  if (cur) parts.push(cur);
+  return parts;
+}
+async function translateText(text, target, onProgress) {
+  const { pick } = await pickChatModel();
+  const parts = splitText(text);
+  const out = [];
+  for (let i = 0; i < parts.length; i++) {
+    onProgress && onProgress(parts.length > 1 ? `מתרגם ${i + 1}/${parts.length}…` : 'מתרגם…');
+    const body = { model: pick, temperature: 0.2, max_tokens: 4000, messages: [
+      { role: 'system', content: `You are a professional translator. Translate the user's text into ${LANG_EN[target]}. The source may be Hebrew, Yiddish or English (it is a speech transcript and may contain recognition errors – translate the intended meaning). Keep names as they are. Output ONLY the translation, with no notes, no quotes and no explanations.` },
+      { role: 'user', content: parts[i] }] };
+    if (/gpt-oss/.test(pick)) body.reasoning_effort = 'low';
+    if (/qwen3/.test(pick)) body.reasoning_format = 'hidden';
+    const res = await groqFetch('/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    out.push(((res.choices && res.choices[0] && res.choices[0].message && res.choices[0].message.content) || '').replace(/<think>[\s\S]*?<\/think>/g, '').trim());
+  }
+  const t = out.join('\n').trim();
+  if (!t) throw new Error('המודל החזיר תרגום ריק');
+  return t;
 }
 
 /* =========================================================
@@ -964,6 +1064,10 @@ async function retryRec(id) {
   if (!Queue.items.includes(id)) Queue.items.push(id);
   renderQueue(); Queue.run();
 }
+
+/* ---------------- Language pills ---------------- */
+function syncLangPills() { $$('#langPills button').forEach((b) => b.classList.toggle('active', b.dataset.lang === $('#langSel').value)); }
+$('#langPills').addEventListener('click', (e) => { const b = e.target.closest('[data-lang]'); if (!b) return; $('#langSel').value = b.dataset.lang; syncLangPills(); });
 
 /* ---------------- Upload ---------------- */
 const AUDIO_EXT = /\.(opus|ogg|oga|m4a|mp3|wav|aac|amr|webm|mp4|3gp|flac|mpeg|mpga|wma|mov)$/i;
@@ -1175,6 +1279,7 @@ const Detail = {
       }
     }
     this.renderSummary();
+    this.renderTranslations();
     this.renderTranscript();
     $('#dEdit').classList.add('hidden'); $('#dTranscript').classList.remove('hidden');
   },
@@ -1184,6 +1289,10 @@ const Detail = {
   renderSummary() {
     const s = $('#dSummary');
     if (this.rec.summary) { s.classList.remove('hidden'); s.innerHTML = '<b>✨ סיכום</b>\n' + esc(this.rec.summary); } else s.classList.add('hidden');
+  },
+  renderTranslations() {
+    const tr = this.rec.translations || {};
+    $('#dTranslations').innerHTML = Object.keys(tr).map((k) => `<div class="translation" dir="${k === 'en' ? 'ltr' : 'rtl'}"><div class="t-head" dir="rtl">🌐 תרגום ל${LANGS[k]} <span class="grow"></span><button class="btn small" data-trcopy="${k}">📋 העתקה</button><button class="btn small" data-trdel="${k}">✕</button></div>${esc(tr[k])}</div>`).join('');
   },
   renderTranscript() {
     const r = this.rec;
@@ -1269,6 +1378,21 @@ $('#sumBtn').onclick = async () => {
   } catch (err) { console.error(err); toast('❌ הסיכום נכשל: ' + err.message, 7000); }
   finally { b.disabled = false; b.textContent = '✨ סיכום אוטומטי'; }
 };
+$('#trBtn').onclick = async () => {
+  const r = Detail.rec; if (!r.text) return toast('אין עדיין תמלול לתרגם');
+  const target = $('#trLang').value, b = $('#trBtn');
+  b.disabled = true; b.innerHTML = '<span class="spinner"></span> מתרגם…';
+  try {
+    const t = await translateText(r.text, target, (p) => b.innerHTML = '<span class="spinner"></span> ' + p);
+    r.translations = Object.assign({}, r.translations, { [target]: t }); await Detail.save(); Detail.renderTranslations(); toast('התרגום מוכן ✅');
+  } catch (err) { console.error(err); toast('❌ התרגום נכשל: ' + err.message, 7000); }
+  finally { b.disabled = false; b.textContent = '🌐 תרגום'; }
+};
+$('#dTranslations').addEventListener('click', async (e) => {
+  const c = e.target.closest('[data-trcopy]'), d = e.target.closest('[data-trdel]');
+  if (c) { try { await navigator.clipboard.writeText(Detail.rec.translations[c.dataset.trcopy]); toast('התרגום הועתק'); } catch (er) { toast('ההעתקה נכשלה'); } }
+  if (d) { delete Detail.rec.translations[d.dataset.trdel]; await Detail.save(); Detail.renderTranslations(); }
+});
 $('#copyBtn').onclick = async () => {
   try { await navigator.clipboard.writeText(Detail.rec.text || ''); toast('הטקסט הועתק'); } catch (e) { toast('ההעתקה נכשלה'); }
 };
@@ -1452,11 +1576,12 @@ $('#addUserForm').addEventListener('submit', async (e) => {
   const msg = (t, ok) => $('#nuMsg').innerHTML = `<span class="${ok ? 'ok-text' : 'err-text'}">${esc(t)}</span>`;
   if (!name) return msg('יש להזין שם משתמש');
   if (Auth.byName(name)) return msg('כבר קיים משתמש בשם הזה');
+  if (Auth.byEmail(em).length) return msg('המייל הזה כבר רשום אצל משתמש אחר');
   if (!validEmail(em)) return msg('כתובת המייל לא תקינה');
-  if (p.length < 4) return msg('הסיסמה צריכה להיות לפחות 4 תווים');
+  if (!p) return msg('יש להזין סיסמה ראשונית');
   const salt = uid();
   const list = Auth.users();
-  list.push({ id: uid(), username: name, email: em, role, salt, hash: await hashPass(p, salt), created: Date.now() });
+  list.push({ id: uid(), username: name, display: name, email: em, role, salt, hash: await hashPass(p, salt), created: Date.now() });
   Auth.saveUsers(list);
   ['nuName', 'nuEmail', 'nuPass'].forEach((i) => $('#' + i).value = ''); $('#nuRole').value = 'user';
   msg(`המשתמש "${name}" נוסף ✓`, true); renderUsers();
@@ -1481,7 +1606,7 @@ $('#usersList').addEventListener('click', async (e) => {
     const ok = await modal(`<h3>סיסמה חדשה ל-${esc(u.username)}</h3><label for="mPass">סיסמה חדשה (לפחות 4 תווים)</label><input type="password" id="mPass" autocomplete="new-password">`,
       { okText: 'שמירה', onOk: (bg) => { val = bg.querySelector('#mPass').value; } });
     if (!ok) return;
-    if (val.length < 4) return toast('הסיסמה קצרה מדי – לא נשמר');
+    if (!val) return toast('לא הוזנה סיסמה – לא נשמר');
     u.salt = uid(); u.hash = await hashPass(val, u.salt); Auth.update(u);
     toast(`הסיסמה של ${u.username} עודכנה ✓`);
   }
@@ -1490,7 +1615,7 @@ $('#usersList').addEventListener('click', async (e) => {
 $('#showKeyBtn').onclick = () => { const i = $('#groqKey'); i.type = i.type === 'password' ? 'text' : 'password'; };
 $('#saveGroqBtn').onclick = () => {
   saveSettings({ groqKey: $('#groqKey').value.trim(), whisperModel: $('#whisperModel').value, defLang: $('#defLang').value });
-  $('#langSel').value = setting('defLang'); chatModelCache = null; updateKeyWarn();
+  $('#langSel').value = setting('defLang'); syncLangPills(); chatModelCache = null; updateKeyWarn();
   $('#groqMsg').innerHTML = '<span class="ok-text">נשמר ✓</span>';
 };
 $('#testGroqBtn').onclick = async () => {
@@ -1509,7 +1634,7 @@ $('#saveAccBtn').onclick = async () => {
   a.email = em;
   if (nw) {
     if ((await hashPass(old, a.salt)) !== a.hash) { $('#accMsg').innerHTML = '<span class="err-text">הסיסמה הנוכחית שגויה</span>'; return; }
-    if (nw.length < 4) { $('#accMsg').innerHTML = '<span class="err-text">סיסמה קצרה מדי</span>'; return; }
+
     a.salt = uid(); a.hash = await hashPass(nw, a.salt);
   }
   Auth.update(a); $('#accOld').value = ''; $('#accNew').value = '';
@@ -1598,7 +1723,9 @@ async function enterApp() {
   if (entered) return;
   entered = true;
   document.body.classList.toggle('is-admin', Auth.isAdmin());
-  $('#whoami').textContent = '👤 ' + (Auth.current() || {}).username;
+  $('#heroHello').textContent = `שלום ${(Auth.current() || {}).display || ''} 👋`;
+  syncLangPills();
+  $('#whoami').textContent = '👤 ' + ((Auth.current() || {}).display || (Auth.current() || {}).username);
   applyTheme();
   $('#langSel').value = setting('defLang');
   updateKeyWarn();
