@@ -130,6 +130,9 @@ audio{width:100%}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222433;color:#fff;padding:.7em 1.2em;border-radius:12px;z-index:60;max-width:90vw;box-shadow:0 6px 24px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.show{opacity:1}
 .settings-sec{margin-bottom:16px}
+body:not(.is-admin) .admin-only{display:none!important}
+.user-row{display:flex;align-items:center;gap:.6em;flex-wrap:wrap;padding:.6em 0;border-bottom:1px solid var(--line)}
+.user-row:last-child{border-bottom:none}
 .hint{font-size:.88em;color:var(--muted);margin-top:.3em}
 @media print{header.top,.toolbar{display:none}}
 </style>
@@ -169,7 +172,9 @@ audio{width:100%}
 
     <form id="forgotForm" class="hidden">
       <h3 style="margin-top:1em">שחזור סיסמה</h3>
-      <p class="muted">הזן את המייל ששמרת במערכת. נשלח אליו קוד בן 4 ספרות.</p>
+      <p class="muted">הזן את המייל ששמור אצל המשתמש שלך. נשלח אליו קוד בן 4 ספרות.</p>
+      <label for="forgotUser">שם משתמש (לא חובה)</label>
+      <input id="forgotUser" type="text" autocomplete="username">
       <label for="forgotEmail">מייל</label>
       <input id="forgotEmail" type="email" required>
       <div class="row" style="margin-top:1.2em">
@@ -211,6 +216,7 @@ audio{width:100%}
     <div class="top-actions">
       <button class="btn small primary hidden" id="installBtn">📲 התקנה כאפליקציה</button>
       <button class="icon-btn" id="darkBtn" title="מצב חושך">🌙</button>
+      <span class="muted" id="whoami" style="font-size:.9em"></span>
       <button class="icon-btn" id="logoutBtn" title="יציאה">⎋</button>
     </div>
   </header>
@@ -242,9 +248,13 @@ audio{width:100%}
           <h3>העלאת הקלטות</h3>
           <div class="drop" id="drop">
             <div style="font-size:2em">📁</div>
-            <div>גרור לכאן קבצי שמע (אפשר כמה ביחד)</div>
+            <div>גרור לכאן קובץ, כמה קבצים או תיקייה שלמה</div>
             <div class="muted" style="font-size:.9em">ווטסאפ (opus), mp3, m4a, wav, ogg, webm, mp4…</div>
-            <div style="margin-top:.8em"><button class="btn primary" id="pickBtn">בחירת קבצים</button></div>
+            <div class="row" style="margin-top:.8em;justify-content:center">
+              <button class="btn primary" id="pickBtn">🎵 קובץ אחד או כמה</button>
+              <button class="btn" id="pickDirBtn">📂 תיקייה שלמה</button>
+            </div>
+            <input type="file" id="dirInput" webkitdirectory directory multiple class="hidden">
             <input type="file" id="fileInput" multiple accept="audio/*,video/*,.opus,.ogg,.oga,.m4a,.mp3,.wav,.aac,.amr,.webm,.mp4,.3gp,.flac" class="hidden">
           </div>
         </div>
@@ -337,7 +347,7 @@ audio{width:100%}
     <!-- SETTINGS -->
     <section class="page" id="page-settings">
       <h2>הגדרות</h2>
-      <div class="card settings-sec">
+      <div class="card settings-sec admin-only">
         <h3>Groq – מנוע התמלול</h3>
         <label for="groqKey">מפתח API של Groq</label>
         <div class="row">
@@ -376,7 +386,26 @@ audio{width:100%}
         </div>
       </div>
 
-      <div class="card settings-sec">
+      <div class="card settings-sec admin-only" id="usersSec">
+        <h3>👥 ניהול משתמשים</h3>
+        <div class="hint">רק מנהל רואה את האזור הזה. כל משתמש רואה רק את ההקלטות שלו, והמנהל רואה את כולן.</div>
+        <div id="usersList" style="margin-top:.6em"></div>
+        <h4 style="margin:1.2em 0 .2em">➕ הוספת משתמש</h4>
+        <form id="addUserForm" autocomplete="off">
+          <div class="home-grid" style="gap:0 12px">
+            <div><label for="nuName">שם משתמש</label><input type="text" id="nuName" autocomplete="off"></div>
+            <div><label for="nuEmail">מייל (לשחזור סיסמה)</label><input type="email" id="nuEmail" autocomplete="off"></div>
+            <div><label for="nuPass">סיסמה ראשונית</label><input type="password" id="nuPass" autocomplete="new-password"></div>
+            <div><label for="nuRole">הרשאה</label><select id="nuRole"><option value="user">משתמש רגיל</option><option value="admin">מנהל</option></select></div>
+          </div>
+          <div class="row" style="margin-top:1em">
+            <button class="btn primary" type="submit">הוספת משתמש</button>
+            <span id="nuMsg"></span>
+          </div>
+        </form>
+      </div>
+
+      <div class="card settings-sec admin-only">
         <h3>שליחת מיילים (EmailJS)</h3>
         <div class="hint">משמש לשליחת קוד שחזור הסיסמה. בדרך כלל אין צורך לשנות.</div>
         <label for="ejService">Service ID</label><input type="text" id="ejService">
@@ -389,7 +418,7 @@ audio{width:100%}
         </div>
       </div>
 
-      <div class="card settings-sec">
+      <div class="card settings-sec admin-only">
         <h3>גיבוי ונתונים</h3>
         <div class="row">
           <button class="btn" id="backupBtn">⬇️ גיבוי התמלולים (JSON)</button>
@@ -404,7 +433,7 @@ audio{width:100%}
         <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
         <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול פלוס", וההקלטה נכנסת לתור אוטומטית.</p>
         <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
-        <p class="hint">גרסה 1.0.1</p>
+        <p class="hint">גרסה 1.1.0</p>
       </div>
     </section>
   </main>
@@ -418,7 +447,7 @@ audio{width:100%}
 /* =========================================================
    תמלול פלוס – מערכת תמלול הקלטות
    ========================================================= */
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.1.0';
 const DEFAULTS = {
   emailjsService: 'service_nybca58',
   emailjsTemplate: 'template_9e88gji',
@@ -515,6 +544,13 @@ const DB = {
   del(store, key) { return this.tx(store, 'readwrite', (s) => s.delete(key)); }
 };
 
+async function myRecs() {
+  const all = await DB.all('recs'), me = Auth.current();
+  if (!me) return [];
+  return me.role === 'admin' ? all : all.filter((r) => r.owner === me.id);
+}
+function ownerName(id) { const u = Auth.users().find((x) => x.id === id); return u ? u.username : ''; }
+
 /* ---------------- Crypto helpers ---------------- */
 async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -526,12 +562,28 @@ async function hashPass(pass, salt) { return sha256(salt + '|' + pass + '|tamlul
    AUTH
    ========================================================= */
 const Auth = {
-  user() { return LS.get('auth', null); },
-  loggedIn() {
-    const s = LS.get('session', null), u = this.user();
-    return !!(s && u && s.user === u.username && s.exp > Date.now());
+  /* users: [{id, username, email, salt, hash, role:'admin'|'user', created}] */
+  users() {
+    let list = LS.get('users', null);
+    if (!list) {                                   // migrate from single-user version
+      const a = LS.get('auth', null);
+      list = a ? [Object.assign({ id: uid(), role: 'admin' }, a)] : [];
+      if (a) { LS.set('users', list); LS.del('auth'); }
+    }
+    return list;
   },
-  startSession() { LS.set('session', { user: this.user().username, exp: Date.now() + 30 * 864e5 }); },
+  saveUsers(list) { LS.set('users', list); },
+  byName(name) { return this.users().find((u) => u.username.toLowerCase() === String(name || '').trim().toLowerCase()); },
+  current() {
+    const s = LS.get('session', null);
+    if (!s || s.exp < Date.now()) return null;
+    return this.users().find((u) => u.id === s.id || u.username === s.user) || null;
+  },
+  user() { return this.current(); },
+  isAdmin() { const c = this.current(); return !!(c && c.role === 'admin'); },
+  loggedIn() { return !!this.current(); },
+  startSession(u) { LS.set('session', { id: u.id, user: u.username, exp: Date.now() + 30 * 864e5 }); },
+  update(u) { const list = this.users().map((x) => x.id === u.id ? u : x); this.saveUsers(list); },
   logout() { LS.del('session'); location.reload(); }
 };
 function authMsg(text, cls = '') { const m = $('#authMsg'); m.className = 'auth-msg ' + cls; m.textContent = text; }
@@ -542,32 +594,32 @@ function showAuthForm(id) {
 }
 function showAuth() {
   $('#app').classList.add('hidden'); $('#auth').classList.remove('hidden');
-  showAuthForm(Auth.user() ? 'loginForm' : 'setupForm');
+  showAuthForm(Auth.users().length ? 'loginForm' : 'setupForm');
 }
+const validEmail = (em) => /^\S+@\S+\.\S+$/.test(em);
 
 $('#setupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (Auth.users().length) return showAuthForm('loginForm');
   const u = $('#setupUser').value.trim(), em = $('#setupEmail').value.trim(), p = $('#setupPass').value, p2 = $('#setupPass2').value;
   if (!u) return authMsg('יש להזין שם משתמש', 'err-text');
-  if (!/^\S+@\S+\.\S+$/.test(em)) return authMsg('כתובת המייל לא תקינה', 'err-text');
+  if (!validEmail(em)) return authMsg('כתובת המייל לא תקינה', 'err-text');
   if (p.length < 4) return authMsg('הסיסמה צריכה להיות לפחות 4 תווים', 'err-text');
   if (p !== p2) return authMsg('הסיסמאות אינן תואמות', 'err-text');
   const salt = uid();
-  LS.set('auth', { username: u, email: em, salt, hash: await hashPass(p, salt), created: Date.now() });
-  Auth.startSession(); enterApp();
+  const user = { id: uid(), username: u, email: em, role: 'admin', salt, hash: await hashPass(p, salt), created: Date.now() };
+  Auth.saveUsers([user]);
+  Auth.startSession(user); enterApp();
 });
 
 $('#loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const a = Auth.user();
-  const u = $('#loginUser').value.trim(), p = $('#loginPass').value;
-  if (!a) return showAuthForm('setupForm');
-  if (u.toLowerCase() !== a.username.toLowerCase() || (await hashPass(p, a.salt)) !== a.hash) {
-    return authMsg('שם משתמש או סיסמה שגויים', 'err-text');
-  }
-  Auth.startSession(); $('#loginPass').value = ''; enterApp();
+  if (!Auth.users().length) return showAuthForm('setupForm');
+  const u = Auth.byName($('#loginUser').value), p = $('#loginPass').value;
+  if (!u || (await hashPass(p, u.salt)) !== u.hash) return authMsg('שם משתמש או סיסמה שגויים', 'err-text');
+  Auth.startSession(u); $('#loginPass').value = ''; enterApp();
 });
-$('#forgotBtn').onclick = () => { showAuthForm('forgotForm'); };
+$('#forgotBtn').onclick = () => { showAuthForm('forgotForm'); if ($('#loginUser').value) $('#forgotUser').value = $('#loginUser').value; };
 $$('[data-back]').forEach((b) => b.onclick = () => showAuthForm('loginForm'));
 
 async function sendEmail(toEmail, subject, message) {
@@ -586,20 +638,26 @@ async function sendEmail(toEmail, subject, message) {
 }
 
 async function sendResetCode() {
-  const a = Auth.user();
-  const em = $('#forgotEmail').value.trim() || (LS.get('reset', {}).email || '');
-  if (!a) return authMsg('עדיין לא הוגדר משתמש במכשיר הזה', 'err-text');
-  if (em.toLowerCase() !== (a.email || '').toLowerCase()) return authMsg('המייל לא תואם למייל ששמור במערכת', 'err-text');
+  const users = Auth.users();
+  const prev = LS.get('reset', {}) || {};
+  const em = ($('#forgotEmail').value.trim() || prev.email || '').toLowerCase();
+  const un = ($('#forgotUser').value.trim() || prev.username || '').toLowerCase();
+  if (!users.length) return authMsg('עדיין לא הוגדר משתמש במכשיר הזה', 'err-text');
+  let matches = users.filter((u) => (u.email || '').toLowerCase() === em);
+  if (un) matches = matches.filter((u) => u.username.toLowerCase() === un);
+  if (!matches.length) return authMsg(un ? 'לא נמצא משתמש עם שם המשתמש והמייל האלה' : 'המייל לא שמור אצל אף משתמש במערכת', 'err-text');
+  if (matches.length > 1) return authMsg('כמה משתמשים משתמשים במייל הזה – הזן גם את שם המשתמש', 'err-text');
+  const a = matches[0];
   const code = String(Math.floor(1000 + Math.random() * 9000));
   const salt = uid();
-  LS.set('reset', { email: em, salt, hash: await sha256(salt + code), exp: Date.now() + 15 * 60 * 1000, tries: 0 });
+  LS.set('reset', { userId: a.id, username: a.username, email: a.email, salt, hash: await sha256(salt + code), exp: Date.now() + 15 * 60 * 1000, tries: 0 });
   authMsg('שולח קוד…');
   $('#sendCodeBtn').disabled = true;
   try {
-    await sendEmail(em, 'קוד לשחזור סיסמה – תמלול פלוס',
+    await sendEmail(a.email, 'קוד לשחזור סיסמה – תמלול פלוס',
       `שלום ${a.username},\n\nקוד שחזור הסיסמה שלך למערכת "תמלול פלוס" הוא: ${code}\n\nהקוד בתוקף ל-15 דקות.\nאם לא ביקשת לשחזר סיסמה – אפשר להתעלם מהמייל.`);
     showAuthForm('resetForm');
-    authMsg('הקוד נשלח למייל ' + em, 'ok-text');
+    authMsg('הקוד נשלח למייל ' + a.email, 'ok-text');
   } catch (err) {
     console.error(err);
     authMsg('שליחת המייל נכשלה: ' + err.message, 'err-text');
@@ -610,7 +668,8 @@ $('#resendBtn').onclick = () => sendResetCode();
 
 $('#resetForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const r = LS.get('reset', null), a = Auth.user();
+  const r = LS.get('reset', null);
+  const a = r && Auth.users().find((u) => u.id === r.userId);
   const code = $('#resetCode').value.trim(), p = $('#resetPass').value, p2 = $('#resetPass2').value;
   if (!r || !a) return authMsg('אין בקשת שחזור פעילה – שלח קוד מחדש', 'err-text');
   if (Date.now() > r.exp) return authMsg('תוקף הקוד פג – שלח קוד חדש', 'err-text');
@@ -622,7 +681,7 @@ $('#resetForm').addEventListener('submit', async (e) => {
   if (p.length < 4) return authMsg('הסיסמה צריכה להיות לפחות 4 תווים', 'err-text');
   if (p !== p2) return authMsg('הסיסמאות אינן תואמות', 'err-text');
   a.salt = uid(); a.hash = await hashPass(p, a.salt);
-  LS.set('auth', a); LS.del('reset');
+  Auth.update(a); LS.del('reset');
   ['resetCode', 'resetPass', 'resetPass2'].forEach((i) => $('#' + i).value = '');
   showAuthForm('loginForm');
   $('#loginUser').value = a.username;
@@ -822,7 +881,7 @@ const Queue = {
     const id = uid();
     const rec = {
       id, title: title || (name ? name.replace(/\.[^.]+$/, '') : 'הקלטה'), fileName: name || 'recording', mime: blob.type || '', size: blob.size,
-      lang, createdAt: Date.now(), duration: 0, folderId: null, tags: [], text: '', segments: [], summary: '', status: 'queued', progress: '', error: ''
+      owner: (Auth.current() || {}).id || null, lang, createdAt: Date.now(), duration: 0, folderId: null, tags: [], text: '', segments: [], summary: '', status: 'queued', progress: '', error: ''
     };
     await DB.put('audio', blob, id);
     await DB.put('recs', rec);
@@ -872,7 +931,7 @@ const Queue = {
 };
 let queueShown = new Set();
 async function renderQueue() {
-  const recs = await DB.all('recs');
+  const recs = await myRecs();
   const active = recs.filter((r) => r.status === 'queued' || r.status === 'processing');
   active.forEach((r) => queueShown.add(r.id));
   const shown = recs.filter((r) => queueShown.has(r.id)).sort((a, b) => a.createdAt - b.createdAt);
@@ -907,22 +966,45 @@ async function retryRec(id) {
 }
 
 /* ---------------- Upload ---------------- */
-function addFiles(files) {
-  const list = [...files].filter((f) => f && f.size);
-  if (!list.length) return;
+const AUDIO_EXT = /\.(opus|ogg|oga|m4a|mp3|wav|aac|amr|webm|mp4|3gp|flac|mpeg|mpga|wma|mov)$/i;
+const isAudioFile = (f) => f && f.size && ((f.type || '').startsWith('audio/') || (f.type || '').startsWith('video/') || AUDIO_EXT.test(f.name || '') || /^(AUD|PTT)-/i.test(f.name || ''));
+function addFiles(files, fromFolder = false) {
+  const all = [...files].filter((f) => f && f.size);
+  const list = all.filter(isAudioFile);
+  if (fromFolder && all.length > list.length) toast(`דילגתי על ${all.length - list.length} קבצים שאינם הקלטות`, 4000);
+  if (!list.length) { if (all.length) toast('לא נמצאו קבצי שמע'); return; }
+  list.sort((a, b) => (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name, 'he', { numeric: true }));
   if (!groqKey()) toast('⚠️ הקבצים נוספו לתור, אבל חסר מפתח Groq בהגדרות', 5000);
   const lang = $('#langSel').value;
-  list.forEach((f) => Queue.add(f, f.name, lang));
-  toast(`נוספו ${list.length} קבצים לתור`);
+  (async () => { for (const f of list) await Queue.add(f, f.name, lang); })();
+  toast(`נוספו ${list.length} הקלטות לתור`);
 }
 $('#pickBtn').onclick = () => $('#fileInput').click();
 $('#fileInput').onchange = (e) => { addFiles(e.target.files); e.target.value = ''; };
+$('#pickDirBtn').onclick = () => $('#dirInput').click();
+$('#dirInput').onchange = (e) => { addFiles(e.target.files, true); e.target.value = ''; };
+/* drag & drop – supports whole folders (recursively) */
+async function filesFromDataTransfer(dt) {
+  const items = [...(dt.items || [])].map((i) => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  if (!items.length) return { files: [...dt.files], folder: false };
+  const out = []; let folder = false;
+  const walk = async (entry) => {
+    if (entry.isFile) { out.push(await new Promise((res, rej) => entry.file(res, rej))); return; }
+    folder = true;
+    const reader = entry.createReader();
+    let batch;
+    do { batch = await new Promise((res, rej) => reader.readEntries(res, rej)); for (const en of batch) await walk(en); } while (batch.length);
+  };
+  for (const en of items) await walk(en);
+  return { files: out, folder };
+}
+async function handleDrop(dt) { const { files, folder } = await filesFromDataTransfer(dt); addFiles(files, folder); }
 const drop = $('#drop');
 ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+drop.addEventListener('drop', (e) => { e.stopPropagation(); handleDrop(e.dataTransfer); });
 document.addEventListener('dragover', (e) => e.preventDefault());
-document.addEventListener('drop', (e) => { e.preventDefault(); if (currentPage === 'home' && !drop.contains(e.target)) addFiles(e.dataTransfer.files); });
+document.addEventListener('drop', (e) => { e.preventDefault(); if (currentPage === 'home' && !drop.contains(e.target)) handleDrop(e.dataTransfer); });
 
 /* ---------------- Recorder ---------------- */
 const Rec = {
@@ -1004,7 +1086,7 @@ function snippetFor(text, q) {
   return (s ? '…' : '') + text.slice(s, i + 140);
 }
 async function renderLibrary() {
-  const [recs, fl] = await Promise.all([DB.all('recs'), folders()]);
+  const [recs, fl] = await Promise.all([myRecs(), folders()]);
   const count = (fid) => recs.filter((r) => fid === 'all' ? true : fid === 'none' ? !r.folderId : r.folderId === fid).length;
   $('#folderList').innerHTML =
     [['all', '📂 הכל'], ['none', '📄 ללא תיקייה'], ...fl.map((f) => [f.id, '📁 ' + f.name])].map(([id, name]) =>
@@ -1018,12 +1100,13 @@ async function renderLibrary() {
   }
   list.sort((a, b) => b.createdAt - a.createdAt);
   const fmap = Object.fromEntries(fl.map((f) => [f.id, f.name]));
+  const showOwner = Auth.isAdmin() && Auth.users().length > 1;
   $('#recList').innerHTML = list.length ? list.map((r) => `
     <div class="rec-card" data-rec="${r.id}">
       <div class="row"><span class="title grow">${highlight(r.title, q)}</span>
         ${r.status === 'done' ? '' : r.status === 'error' ? '<span class="badge err">נכשל</span>' : '<span class="badge warn">בתור</span>'}
         <span class="badge">${LANGS[r.lang] || ''}</span></div>
-      <div class="muted" style="font-size:.85em">${fmtDate(r.createdAt)} · ${fmtTime(r.duration)}${r.folderId && fmap[r.folderId] ? ' · 📁 ' + esc(fmap[r.folderId]) : ''}</div>
+      <div class="muted" style="font-size:.85em">${fmtDate(r.createdAt)} · ${fmtTime(r.duration)}${r.folderId && fmap[r.folderId] ? ' · 📁 ' + esc(fmap[r.folderId]) : ''}${showOwner && r.owner ? ' · 👤 ' + esc(ownerName(r.owner)) : ''}</div>
       <div>${(r.tags || []).map((t) => `<span class="tag">#${highlight(t, q)}</span>`).join('')}</div>
       <div class="snippet">${highlight(snippetFor(r.text || r.error || '', q), q)}</div>
       <div class="row" style="margin-top:.4em" onclick="event.stopPropagation()">
@@ -1295,7 +1378,7 @@ $('#docxBtn').onclick = (e) => runExport(e.currentTarget, () => exportDocx(Detai
 $('#pdfBtn').onclick = (e) => runExport(e.currentTarget, () => exportPdf(Detail.rec));
 $('#txtBtn').onclick = () => { download(new Blob(['\ufeff' + Detail.rec.title + '\n\n' + (Detail.rec.summary ? 'סיכום:\n' + Detail.rec.summary + '\n\n' : '') + (Detail.rec.text || '')], { type: 'text/plain;charset=utf-8' }), safeName(Detail.rec.title) + '.txt'); };
 $('#exportAllXlsx').onclick = (e) => runExport(e.currentTarget, async () => {
-  const recs = (await DB.all('recs')).sort((a, b) => b.createdAt - a.createdAt);
+  const recs = (await myRecs()).sort((a, b) => b.createdAt - a.createdAt);
   if (!recs.length) throw new Error('אין הקלטות לייצוא');
   await exportXlsx(recs, 'ספריית_תמלולים.xlsx', true);
 });
@@ -1308,7 +1391,7 @@ function bars(el, entries, fmt) {
   el.innerHTML = entries.length ? entries.map(([k, v]) => `<div class="bar-row"><span class="lbl">${esc(k)}</span><span class="bar"><div style="width:${(v / max) * 100}%"></div></span><span class="val">${fmt(v)}</span></div>`).join('') : '<p class="muted">אין נתונים עדיין</p>';
 }
 async function renderStats() {
-  const [recs, fl] = await Promise.all([DB.all('recs'), folders()]);
+  const [recs, fl] = await Promise.all([myRecs(), folders()]);
   const done = recs.filter((r) => r.status === 'done');
   const totalSec = done.reduce((a, r) => a + (r.duration || 0), 0);
   const words = done.reduce((a, r) => a + (r.text ? r.text.split(/\s+/).filter(Boolean).length : 0), 0);
@@ -1338,7 +1421,8 @@ async function renderSettings() {
   $('#ejService').value = setting('emailjsService');
   $('#ejTemplate').value = setting('emailjsTemplate');
   $('#ejKey').value = setting('emailjsKey');
-  $('#accInfo').textContent = a ? `משתמש: ${a.username}` : '';
+  $('#accInfo').textContent = a ? `משתמש: ${a.username} · ${a.role === 'admin' ? 'מנהל' : 'משתמש רגיל'}` : '';
+  if (Auth.isAdmin()) renderUsers();
   $('#accEmail').value = a ? a.email : '';
   try {
     if (navigator.storage && navigator.storage.estimate) {
@@ -1347,6 +1431,62 @@ async function renderSettings() {
     }
   } catch (e) {}
 }
+
+/* ---------------- Users management (admin) ---------------- */
+function renderUsers() {
+  const me = Auth.current(), list = Auth.users();
+  $('#usersList').innerHTML = list.map((u) => `
+    <div class="user-row">
+      <div class="grow"><b>${esc(u.username)}</b> ${u.id === me.id ? '<span class="badge">אתה</span>' : ''}
+        <span class="badge ${u.role === 'admin' ? 'ok' : ''}">${u.role === 'admin' ? 'מנהל' : 'משתמש רגיל'}</span>
+        <div class="muted" style="font-size:.88em">${esc(u.email || '')} · נוצר ${new Date(u.created || Date.now()).toLocaleDateString('he-IL')}</div></div>
+      <button class="btn small" data-upass="${u.id}">🔑 סיסמה חדשה</button>
+      ${u.id !== me.id ? `<button class="btn small" data-urole="${u.id}">${u.role === 'admin' ? '⬇️ הפוך לרגיל' : '⬆️ הפוך למנהל'}</button>
+      <button class="btn small danger" data-udel="${u.id}">🗑️ מחיקה</button>` : ''}
+    </div>`).join('');
+}
+$('#addUserForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!Auth.isAdmin()) return;
+  const name = $('#nuName').value.trim(), em = $('#nuEmail').value.trim(), p = $('#nuPass').value, role = $('#nuRole').value;
+  const msg = (t, ok) => $('#nuMsg').innerHTML = `<span class="${ok ? 'ok-text' : 'err-text'}">${esc(t)}</span>`;
+  if (!name) return msg('יש להזין שם משתמש');
+  if (Auth.byName(name)) return msg('כבר קיים משתמש בשם הזה');
+  if (!validEmail(em)) return msg('כתובת המייל לא תקינה');
+  if (p.length < 4) return msg('הסיסמה צריכה להיות לפחות 4 תווים');
+  const salt = uid();
+  const list = Auth.users();
+  list.push({ id: uid(), username: name, email: em, role, salt, hash: await hashPass(p, salt), created: Date.now() });
+  Auth.saveUsers(list);
+  ['nuName', 'nuEmail', 'nuPass'].forEach((i) => $('#' + i).value = ''); $('#nuRole').value = 'user';
+  msg(`המשתמש "${name}" נוסף ✓`, true); renderUsers();
+});
+$('#usersList').addEventListener('click', async (e) => {
+  if (!Auth.isAdmin()) return;
+  const me = Auth.current();
+  const del = e.target.closest('[data-udel]'), role = e.target.closest('[data-urole]'), pass = e.target.closest('[data-upass]');
+  if (del) {
+    const u = Auth.users().find((x) => x.id === del.dataset.udel); if (!u || u.id === me.id) return;
+    if (!(await confirmBox(`למחוק את המשתמש "${u.username}"? ההקלטות שלו לא יימחקו – הן יעברו אליך.`))) return;
+    Auth.saveUsers(Auth.users().filter((x) => x.id !== u.id));
+    for (const r of await DB.all('recs')) if (r.owner === u.id) { r.owner = me.id; await DB.put('recs', r); }
+    toast(`המשתמש "${u.username}" נמחק`); renderUsers();
+  } else if (role) {
+    const u = Auth.users().find((x) => x.id === role.dataset.urole); if (!u || u.id === me.id) return;
+    u.role = u.role === 'admin' ? 'user' : 'admin'; Auth.update(u);
+    toast(`${u.username} עכשיו ${u.role === 'admin' ? 'מנהל' : 'משתמש רגיל'}`); renderUsers();
+  } else if (pass) {
+    const u = Auth.users().find((x) => x.id === pass.dataset.upass); if (!u) return;
+    let val = '';
+    const ok = await modal(`<h3>סיסמה חדשה ל-${esc(u.username)}</h3><label for="mPass">סיסמה חדשה (לפחות 4 תווים)</label><input type="password" id="mPass" autocomplete="new-password">`,
+      { okText: 'שמירה', onOk: (bg) => { val = bg.querySelector('#mPass').value; } });
+    if (!ok) return;
+    if (val.length < 4) return toast('הסיסמה קצרה מדי – לא נשמר');
+    u.salt = uid(); u.hash = await hashPass(val, u.salt); Auth.update(u);
+    toast(`הסיסמה של ${u.username} עודכנה ✓`);
+  }
+});
+
 $('#showKeyBtn').onclick = () => { const i = $('#groqKey'); i.type = i.type === 'password' ? 'text' : 'password'; };
 $('#saveGroqBtn').onclick = () => {
   saveSettings({ groqKey: $('#groqKey').value.trim(), whisperModel: $('#whisperModel').value, defLang: $('#defLang').value });
@@ -1372,7 +1512,7 @@ $('#saveAccBtn').onclick = async () => {
     if (nw.length < 4) { $('#accMsg').innerHTML = '<span class="err-text">סיסמה קצרה מדי</span>'; return; }
     a.salt = uid(); a.hash = await hashPass(nw, a.salt);
   }
-  LS.set('auth', a); $('#accOld').value = ''; $('#accNew').value = '';
+  Auth.update(a); $('#accOld').value = ''; $('#accNew').value = '';
   $('#accMsg').innerHTML = '<span class="ok-text">נשמר ✓</span>';
 };
 $('#saveEjBtn').onclick = () => {
@@ -1385,7 +1525,7 @@ $('#testEjBtn').onclick = async () => {
   catch (err) { $('#ejMsg').innerHTML = `<span class="err-text">${esc(err.message)}</span>`; }
 };
 $('#backupBtn').onclick = async () => {
-  const recs = (await DB.all('recs')).map((r) => Object.assign({}, r, { peaks: undefined }));
+  const recs = (await myRecs()).map((r) => Object.assign({}, r, { peaks: undefined }));
   const data = { app: 'tamlul-plus', version: APP_VERSION, exported: new Date().toISOString(), folders: await DB.all('folders'), recs };
   download(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }), `tamlul-plus-backup-${new Date().toISOString().slice(0, 10)}.json`);
 };
@@ -1401,7 +1541,10 @@ $('#restoreInput').onchange = async (e) => {
     toast(`שוחזרו ${n} הקלטות`);
   } catch (err) { toast('❌ ' + err.message, 5000); }
 };
-function updateKeyWarn() { $('#noKeyWarn').classList.toggle('hidden', !!groqKey()); }
+function updateKeyWarn() {
+  $('#noKeyWarn').classList.toggle('hidden', !!groqKey());
+  if (!Auth.isAdmin()) $('#noKeyWarn').innerHTML = '⚠️ עדיין לא הוגדר מפתח Groq במכשיר הזה. בקש מהמנהל להיכנס להגדרות ולהדביק את המפתח.';
+}
 
 /* =========================================================
    INSTALL (PWA) + SHARE TARGET + SERVICE WORKER
@@ -1454,6 +1597,8 @@ async function enterApp() {
   $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden');
   if (entered) return;
   entered = true;
+  document.body.classList.toggle('is-admin', Auth.isAdmin());
+  $('#whoami').textContent = '👤 ' + (Auth.current() || {}).username;
   applyTheme();
   $('#langSel').value = setting('defLang');
   updateKeyWarn();
@@ -1461,7 +1606,7 @@ async function enterApp() {
   await Queue.resume();
   await renderQueue();
   await pickUpShared();
-  if (!groqKey()) go('settings');
+  if (!groqKey() && Auth.isAdmin()) go('settings');
 }
 (function boot() {
   applyTheme();
