@@ -508,7 +508,7 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
         <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
         <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול פלוס", וההקלטה נכנסת לתור אוטומטית.</p>
         <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
-        <p class="hint">גרסה 1.3.2</p>
+        <p class="hint">גרסה 1.3.3</p>
       </div>
     </section>
   </main>
@@ -522,7 +522,7 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
 /* =========================================================
    תמלול פלוס – מערכת תמלול הקלטות
    ========================================================= */
-const APP_VERSION = '1.3.2';
+const APP_VERSION = '1.3.3';
 const DEFAULTS = {
   emailjsService: 'service_nybca58',
   emailjsTemplate: 'template_9e88gji',
@@ -1030,6 +1030,7 @@ async function geminiTranscribeOne(blob, mime, lang, dur) {
   }
   throw lastErr || new Error('Gemini נכשל');
 }
+const GEM_CHUNK_CACHE = new Map();
 const GEM_MAX_INLINE = 13 * 1024 * 1024;
 const GEM_CHUNK_SEC = 300;
 async function geminiTranscribe(blob, name, lang, onProgress) {
@@ -1041,7 +1042,16 @@ async function geminiTranscribe(blob, name, lang, onProgress) {
   // Short enough: send the original file as-is
   if (blob.size <= GEM_MAX_INLINE && (!total || total <= 12 * 60)) {
     onProgress && onProgress('Gemini מתמלל…');
-    const segs = await geminiTranscribeOne(blob, mimeByExt[ext] || blob.type || 'audio/ogg', lang, total);
+    let segs;
+    for (let round = 0; ; round++) {
+      try { segs = await geminiTranscribeOne(blob, mimeByExt[ext] || blob.type || 'audio/ogg', lang, total); break; }
+      catch (err) {
+        if (round >= 3 || (err.status && ![429, 500, 503].includes(err.status) && !/לא החזיר|timeout/.test(err.message))) throw err;
+        const wait = 20 * (round + 1);
+        onProgress && onProgress(`Gemini עמוס – מנסה שוב בעוד ${wait} שניות…`);
+        await sleep(wait * 1000);
+      }
+    }
     return { text: segs.map((s) => s.text).join(' '), segments: segs, duration: total || (segs.length ? segs[segs.length - 1].end : 0), language: lang };
   }
   if (!audio) throw new Error('לא הצלחתי לפענח את קובץ השמע (פורמט לא נתמך)');
@@ -1050,8 +1060,21 @@ async function geminiTranscribe(blob, name, lang, onProgress) {
   for (let i = 0; i < parts; i++) {
     const st = i * GEM_CHUNK_SEC, en = Math.min(total, st + GEM_CHUNK_SEC);
     onProgress && onProgress(`Gemini מתמלל חלק ${i + 1} מתוך ${parts}…`);
-    const wav = encodeWav(await resampleMono16k(audio, st, en));
-    const segs = await geminiTranscribeOne(wav, 'audio/wav', lang, en - st);
+    const cacheKey = blob.size + ':' + lang + ':' + i;
+    let segs = GEM_CHUNK_CACHE.get(cacheKey);
+    if (!segs) {
+      const wav = encodeWav(await resampleMono16k(audio, st, en));
+      for (let round = 0; ; round++) {
+        try { segs = await geminiTranscribeOne(wav, 'audio/wav', lang, en - st); break; }
+        catch (err) {
+          if (round >= 3 || (err.status && ![429, 500, 503].includes(err.status) && !/לא החזיר|timeout/.test(err.message))) throw err;
+          const wait = 20 * (round + 1);
+          onProgress && onProgress(`Gemini עמוס – מנסה שוב חלק ${i + 1} בעוד ${wait} שניות…`);
+          await sleep(wait * 1000);
+        }
+      }
+      GEM_CHUNK_CACHE.set(cacheKey, segs);
+    }
     segs.forEach((s) => out.segments.push({ start: Math.min(en, s.start + st), end: Math.min(en, s.end + st), text: s.text }));
   }
   out.text = out.segments.map((s) => s.text).join(' ');
