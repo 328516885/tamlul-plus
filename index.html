@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>תמלול – מערכת תמלול הקלטות</title>
+<title>תמלול פלוס – מערכת תמלול הקלטות</title>
 <meta name="description" content="תמלול הקלטות בעברית, יידיש ואנגלית">
 <meta name="theme-color" content="#4f46e5">
 <link rel="manifest" href="manifest.webmanifest">
@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="תמלול">
+<meta name="apple-mobile-web-app-title" content="תמלול פלוס">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 :root{
@@ -139,7 +139,7 @@ audio{width:100%}
 <!-- ============ AUTH ============ -->
 <div id="auth" class="hidden">
   <div class="card">
-    <div class="logo"><img src="icon-192.png" alt=""> תמלול</div>
+    <div class="logo"><img src="icon-192.png" alt=""> תמלול פלוס</div>
 
     <form id="setupForm" class="hidden" autocomplete="on">
       <h3 style="margin-top:1em">הגדרה ראשונה – יצירת מנהל</h3>
@@ -201,7 +201,7 @@ audio{width:100%}
 <!-- ============ APP ============ -->
 <div id="app" class="hidden">
   <header class="top">
-    <div class="logo"><img src="icon-192.png" alt=""> תמלול</div>
+    <div class="logo"><img src="icon-192.png" alt=""> תמלול פלוס</div>
     <nav class="tabs" id="tabs">
       <button data-page="home" class="active">🎙️ תמלול</button>
       <button data-page="library">📚 ספרייה</button>
@@ -402,9 +402,9 @@ audio{width:100%}
 
       <div class="card settings-sec">
         <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
-        <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול", וההקלטה נכנסת לתור אוטומטית.</p>
+        <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול פלוס", וההקלטה נכנסת לתור אוטומטית.</p>
         <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
-        <p class="hint">גרסה 1.0.0</p>
+        <p class="hint">גרסה 1.0.1</p>
       </div>
     </section>
   </main>
@@ -416,9 +416,9 @@ audio{width:100%}
 <script>
 'use strict';
 /* =========================================================
-   תמלול – מערכת תמלול הקלטות
+   תמלול פלוס – מערכת תמלול הקלטות
    ========================================================= */
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const DEFAULTS = {
   emailjsService: 'service_nybca58',
   emailjsTemplate: 'template_9e88gji',
@@ -472,9 +472,9 @@ const confirmBox = (text) => modal(`<p>${esc(text)}</p>`, { okText: 'כן, למ�
 
 /* ---------------- Settings (localStorage) ---------------- */
 const LS = {
-  get(k, d) { try { const v = localStorage.getItem('tamlul_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem('tamlul_' + k, JSON.stringify(v)); } catch (e) {} },
-  del(k) { try { localStorage.removeItem('tamlul_' + k); } catch (e) {} }
+  get(k, d) { try { const v = localStorage.getItem('tplus_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('tplus_' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('tplus_' + k); } catch (e) {} }
 };
 function setting(k) { const s = LS.get('settings', {}); return s[k] !== undefined && s[k] !== '' ? s[k] : DEFAULTS[k]; }
 function saveSettings(obj) { LS.set('settings', Object.assign(LS.get('settings', {}), obj)); }
@@ -485,7 +485,7 @@ const DB = {
   open() {
     if (this.db) return Promise.resolve(this.db);
     return new Promise((res, rej) => {
-      const r = indexedDB.open('tamlul', 1);
+      const r = indexedDB.open('tamlul-plus', 1);
       r.onupgradeneeded = () => {
         const db = r.result;
         if (!db.objectStoreNames.contains('recs')) db.createObjectStore('recs', { keyPath: 'id' });
@@ -520,7 +520,7 @@ async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
-async function hashPass(pass, salt) { return sha256(salt + '|' + pass + '|tamlul'); }
+async function hashPass(pass, salt) { return sha256(salt + '|' + pass + '|tamlul-plus'); }
 
 /* =========================================================
    AUTH
@@ -575,7 +575,7 @@ async function sendEmail(toEmail, subject, message) {
     service_id: setting('emailjsService'),
     template_id: setting('emailjsTemplate'),
     user_id: setting('emailjsKey'),
-    template_params: { to_email: toEmail, email: toEmail, subject, title: subject, message, name: 'מערכת תמלול', from_name: 'מערכת תמלול' }
+    template_params: { to_email: toEmail, email: toEmail, subject, title: subject, message, name: 'תמלול פלוס', from_name: 'תמלול פלוס' }
   };
   const r = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
@@ -596,8 +596,8 @@ async function sendResetCode() {
   authMsg('שולח קוד…');
   $('#sendCodeBtn').disabled = true;
   try {
-    await sendEmail(em, 'קוד לשחזור סיסמה – תמלול',
-      `שלום ${a.username},\n\nקוד שחזור הסיסמה שלך למערכת התמלול הוא: ${code}\n\nהקוד בתוקף ל-15 דקות.\nאם לא ביקשת לשחזר סיסמה – אפשר להתעלם מהמייל.`);
+    await sendEmail(em, 'קוד לשחזור סיסמה – תמלול פלוס',
+      `שלום ${a.username},\n\nקוד שחזור הסיסמה שלך למערכת "תמלול פלוס" הוא: ${code}\n\nהקוד בתוקף ל-15 דקות.\nאם לא ביקשת לשחזר סיסמה – אפשר להתעלם מהמייל.`);
     showAuthForm('resetForm');
     authMsg('הקוד נשלח למייל ' + em, 'ok-text');
   } catch (err) {
@@ -1260,7 +1260,7 @@ async function exportDocx(r) {
   if (r.segments && r.segments.length && !r.edited) r.segments.forEach((s) => kids.push(new d.Paragraph({ bidirectional: true, alignment: d.AlignmentType.RIGHT, spacing: { after: 100 },
     children: [new d.TextRun({ text: `[${fmtTime(s.start)}] `, rightToLeft: true, font: 'Arial', size: 18, color: '888888' }), new d.TextRun({ text: s.text, rightToLeft: true, font: 'Arial', size: 24 })] })));
   else (r.text || '').split('\n').filter(Boolean).forEach((l) => kids.push(P(l)));
-  const doc = new d.Document({ creator: 'תמלול', title: r.title, sections: [{ properties: {}, children: kids }] });
+  const doc = new d.Document({ creator: 'תמלול פלוס', title: r.title, sections: [{ properties: {}, children: kids }] });
   download(await d.Packer.toBlob(doc), safeName(r.title) + '.docx');
 }
 async function exportPdf(r) {
@@ -1381,20 +1381,20 @@ $('#saveEjBtn').onclick = () => {
 };
 $('#testEjBtn').onclick = async () => {
   $('#ejMsg').innerHTML = '<span class="spinner"></span>';
-  try { await sendEmail(Auth.user().email, 'בדיקה – מערכת תמלול', 'זהו מייל בדיקה ממערכת התמלול. אם קיבלת אותו – שליחת המיילים עובדת ✅'); $('#ejMsg').innerHTML = '<span class="ok-text">נשלח ✓ בדוק את תיבת הדואר</span>'; }
+  try { await sendEmail(Auth.user().email, 'בדיקה – תמלול פלוס', 'זהו מייל בדיקה מ"תמלול פלוס". אם קיבלת אותו – שליחת המיילים עובדת ✅'); $('#ejMsg').innerHTML = '<span class="ok-text">נשלח ✓ בדוק את תיבת הדואר</span>'; }
   catch (err) { $('#ejMsg').innerHTML = `<span class="err-text">${esc(err.message)}</span>`; }
 };
 $('#backupBtn').onclick = async () => {
   const recs = (await DB.all('recs')).map((r) => Object.assign({}, r, { peaks: undefined }));
-  const data = { app: 'tamlul', version: APP_VERSION, exported: new Date().toISOString(), folders: await DB.all('folders'), recs };
-  download(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }), `tamlul-backup-${new Date().toISOString().slice(0, 10)}.json`);
+  const data = { app: 'tamlul-plus', version: APP_VERSION, exported: new Date().toISOString(), folders: await DB.all('folders'), recs };
+  download(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }), `tamlul-plus-backup-${new Date().toISOString().slice(0, 10)}.json`);
 };
 $('#restoreBtn').onclick = () => $('#restoreInput').click();
 $('#restoreInput').onchange = async (e) => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   try {
     const data = JSON.parse(await f.text());
-    if (data.app !== 'tamlul') throw new Error('זה לא קובץ גיבוי של תמלול');
+    if (data.app !== 'tamlul-plus') throw new Error('זה לא קובץ גיבוי של תמלול');
     for (const fo of data.folders || []) await DB.put('folders', fo);
     let n = 0;
     for (const r of data.recs || []) { if (!(await DB.get('recs', r.id))) { if (r.status !== 'done') r.status = r.text ? 'done' : 'error'; await DB.put('recs', r); n++; } }
@@ -1426,7 +1426,7 @@ if (isIOS() && !isStandalone()) $('#installBtn').classList.remove('hidden');
 async function pickUpShared() {
   if (!('caches' in window)) return;
   try {
-    const cache = await caches.open('tamlul-share');
+    const cache = await caches.open('tplus-share');
     const keys = await cache.keys();
     if (!keys.length) return;
     const files = [];
