@@ -188,6 +188,9 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
 .otp input{width:58px!important;height:64px;text-align:center;font-size:1.8em;font-weight:800;border-radius:14px;padding:0!important;border:2px solid var(--line)}
 .otp input:focus{border-color:var(--primary)}
 .auth-msg{font-weight:600;font-size:.93em}
+.btn-auth-alt{background:var(--card);color:var(--primary);border:2px solid var(--primary);box-shadow:none}
+.auth-or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85em;margin:12px 0 6px}
+.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:var(--line)}
 @media print{header.top,.toolbar{display:none}}
 </style>
 </head>
@@ -215,11 +218,14 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
       <div class="fg"><label for="loginPass">סיסמה</label>
         <div class="pass-wrap"><input id="loginPass" type="password" autocomplete="current-password" required><button type="button" class="eye" data-eye="loginPass" title="הצגת סיסמה">👁️</button></div></div>
       <button class="btn-auth" type="submit">התחברות</button>
+      <div class="auth-or"><span>או</span></div>
+      <div id="gBtnWrap" class="hidden" style="display:flex;justify-content:center;margin-bottom:10px"><div id="gBtn"></div></div>
+      <button class="btn-auth btn-auth-alt" type="button" id="codeLoginBtn">✉️ כניסה עם קוד למייל</button>
       <a class="auth-link" id="forgotBtn" href="#">שכחת סיסמה? לחץ כאן לשחזור</a>
     </form>
 
     <form id="forgotForm" class="hidden">
-      <h2>שחזור סיסמה</h2>
+      <h2 id="forgotTitle">שחזור סיסמה</h2>
       <p class="auth-lead">הזן את כתובת הדוא"ל שלך לקבלת קוד אימות בן 4 ספרות</p>
       <div class="fg"><label for="forgotEmail">דוא"ל</label><input id="forgotEmail" type="email" autocomplete="email" required></div>
       <button class="btn-auth" type="submit" id="sendCodeBtn">שלח קוד אימות למייל</button>
@@ -227,16 +233,16 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
     </form>
 
     <form id="resetForm" class="hidden">
-      <h2>איפוס סיסמה</h2>
+      <h2 id="resetTitle">איפוס סיסמה</h2>
       <p class="auth-lead" id="resetLead">הזן את 4 הספרות שנשלחו למייל והגדר סיסמה חדשה</p>
       <div class="fg"><label>קוד אימות</label>
         <div class="otp" id="otp" dir="ltr">
           <input inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="ספרה 1"><input inputmode="numeric" maxlength="1" aria-label="ספרה 2"><input inputmode="numeric" maxlength="1" aria-label="ספרה 3"><input inputmode="numeric" maxlength="1" aria-label="ספרה 4">
         </div>
         <input id="resetCode" type="hidden"></div>
-      <div class="fg"><label for="resetPass">סיסמה חדשה (אפשר גם מספרים בלבד)</label>
-        <div class="pass-wrap"><input id="resetPass" type="password" autocomplete="new-password" required><button type="button" class="eye" data-eye="resetPass" title="הצגת סיסמה">👁️</button></div></div>
-      <button class="btn-auth" type="submit">עדכן סיסמה והתחבר</button>
+      <div class="fg" id="resetPassWrap"><label for="resetPass">סיסמה חדשה (אפשר גם מספרים בלבד)</label>
+        <div class="pass-wrap"><input id="resetPass" type="password" autocomplete="new-password"><button type="button" class="eye" data-eye="resetPass" title="הצגת סיסמה">👁️</button></div></div>
+      <button class="btn-auth" type="submit" id="resetSubmit">עדכן סיסמה והתחבר</button>
       <div class="auth-links"><a class="auth-link" href="#" id="resendBtn">לא הגיע? שלח קוד חדש</a><a class="auth-link" href="#" data-back>ביטול</a></div>
       <p class="hint" style="text-align:center">לא רואה את המייל? בדוק גם בספאם ובקידומי מכירות.</p>
     </form>
@@ -277,6 +283,10 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
         <div class="lang-pills" id="langPills">
           <button data-lang="he">🇮🇱 עברית</button><button data-lang="yi">📜 יידיש</button><button data-lang="en">🇺🇸 אנגלית</button><button data-lang="auto">✨ זיהוי אוטומטי</button>
         </div>
+        <div class="lang-pills hidden" id="yiOutPills" style="margin-inline-start:.4em">
+          <button data-yiout="yi">📜 כתיבה ביידיש</button><button data-yiout="he">🇮🇱 ישר לעברית</button><button data-yiout="both">📜+🇮🇱 גם וגם</button>
+        </div>
+        <label class="row" style="margin:0;font-weight:500;gap:.3em"><input type="checkbox" id="speakersChk" style="width:auto"> זיהוי דוברים</label>
         <select id="langSel" class="hidden">
           <option value="he">עברית</option>
           <option value="yi">יידיש</option>
@@ -494,6 +504,14 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
       </div>
 
       <div class="card settings-sec admin-only">
+        <h3>🔐 כניסה עם Google</h3>
+        <div class="hint">כשמוגדר מזהה לקוח (Client ID) של Google, במסך הכניסה מופיע כפתור "כניסה עם Google". נכנס רק מי שהמייל שלו רשום אצל משתמש במערכת.</div>
+        <label for="gClientId">Google Client ID</label>
+        <input type="text" id="gClientId" placeholder="xxxx.apps.googleusercontent.com" dir="ltr">
+        <div class="row" style="margin-top:1em"><button class="btn primary" id="saveGBtn">שמירה</button><span id="gMsg"></span></div>
+      </div>
+
+      <div class="card settings-sec admin-only">
         <h3>גיבוי ונתונים</h3>
         <div class="row">
           <button class="btn" id="backupBtn">⬇️ גיבוי התמלולים (JSON)</button>
@@ -508,7 +526,7 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
         <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
         <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול פלוס", וההקלטה נכנסת לתור אוטומטית.</p>
         <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
-        <p class="hint">גרסה 1.3.3</p>
+        <p class="hint">גרסה 1.6.0</p>
       </div>
     </section>
   </main>
@@ -522,11 +540,12 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
 /* =========================================================
    תמלול פלוס – מערכת תמלול הקלטות
    ========================================================= */
-const APP_VERSION = '1.3.3';
+const APP_VERSION = '1.6.0';
 const DEFAULTS = {
   emailjsService: 'service_nybca58',
   emailjsTemplate: 'template_9e88gji',
   emailjsKey: '6G0YaH5dH_TKKk_hu',
+  googleClientId: '',
   whisperModel: 'whisper-large-v3',
   defLang: 'he'
 };
@@ -673,7 +692,33 @@ function showAuth() {
   const last = LS.get('lastUser', null);
   if (last) { $('#loginHello').textContent = `שלום ${last.name}, טוב לראות אותך!`; $('#loginUser').value = last.login; }
   showAuthForm(Auth.users().length ? 'loginForm' : 'setupForm');
+  initGoogleButton();
   if (last && Auth.users().length) setTimeout(() => $('#loginPass').focus(), 60);
+}
+/* ---------- Sign in with Google (Google Identity Services) ---------- */
+function b64urlJson(part) { const b = part.replace(/-/g, '+').replace(/_/g, '/'); return JSON.parse(decodeURIComponent(escape(atob(b + '==='.slice((b.length + 3) % 4))))); }
+function onGoogleCredential(resp) {
+  try {
+    const p = b64urlJson(resp.credential.split('.')[1]);
+    const cid = setting('googleClientId');
+    if (p.aud !== cid || !/accounts\.google\.com$/.test(p.iss) || p.exp * 1000 < Date.now()) return authMsg('אימות Google נכשל – נסה שוב', 'err-text');
+    if (!p.email_verified) return authMsg('חשבון Google לא מאומת', 'err-text');
+    const u = Auth.byEmail(p.email)[0];
+    if (!u) return authMsg(`המייל ${p.email} לא רשום במערכת. בקש מהמנהל להוסיף אותך.`, 'err-text');
+    if (!u.display && p.name) { u.display = p.name; Auth.update(u); }
+    Auth.startSession(u); toast('✅ נכנסת עם Google'); enterApp();
+  } catch (e) { console.error(e); authMsg('אימות Google נכשל: ' + e.message, 'err-text'); }
+}
+let gisLoaded = false;
+async function initGoogleButton() {
+  const cid = setting('googleClientId');
+  $('#gBtnWrap').classList.toggle('hidden', !cid);
+  if (!cid) return;
+  try {
+    if (!gisLoaded) { await loadScript('https://accounts.google.com/gsi/client'); gisLoaded = true; }
+    google.accounts.id.initialize({ client_id: cid, callback: onGoogleCredential, auto_select: false, ux_mode: 'popup' });
+    google.accounts.id.renderButton($('#gBtn'), { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill', locale: 'he', width: 320 });
+  } catch (e) { console.warn('Google sign-in unavailable', e); $('#gBtnWrap').classList.add('hidden'); }
 }
 $$('[data-eye]').forEach((b) => b.onclick = () => { const i = $('#' + b.dataset.eye); i.type = i.type === 'password' ? 'text' : 'password'; });
 /* 4-digit code boxes */
@@ -686,7 +731,7 @@ $$('[data-eye]').forEach((b) => b.onclick = () => { const i = $('#' + b.dataset.
       if (d.length > 1) { d.split('').slice(0, 4 - i).forEach((c, k) => boxes[i + k].value = c); boxes[Math.min(3, i + d.length - 1)].focus(); }
       else { b.value = d; if (d && i < 3) boxes[i + 1].focus(); }
       sync();
-      if ($('#resetCode').value.length === 4) $('#resetPass').focus();
+      if ($('#resetCode').value.length === 4) { if (otpMode === 'login') $('#resetSubmit').click(); else $('#resetPass').focus(); }
     });
     b.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !b.value && i > 0) { boxes[i - 1].focus(); boxes[i - 1].value = ''; sync(); } });
     b.addEventListener('paste', (e) => { const t = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 4); if (t) { e.preventDefault(); t.split('').forEach((c, k) => { if (boxes[k]) boxes[k].value = c; }); sync(); (t.length === 4 ? $('#resetPass') : boxes[t.length]).focus(); } });
@@ -715,8 +760,17 @@ $('#loginForm').addEventListener('submit', async (e) => {
   if (!u || (await hashPass(p, u.salt)) !== u.hash) return authMsg('שם משתמש או סיסמה שגויים', 'err-text');
   Auth.startSession(u); $('#loginPass').value = ''; enterApp();
 });
-$('#forgotBtn').onclick = (e) => { e.preventDefault(); showAuthForm('forgotForm'); const v = $('#loginUser').value.trim(); const u = v && Auth.byName(v); if (u && u.email) $('#forgotEmail').value = u.email; else if (validEmail(v)) $('#forgotEmail').value = v; };
-$$('[data-back]').forEach((b) => b.onclick = (e) => { e.preventDefault(); showAuthForm('loginForm'); });
+let otpMode = 'reset';
+function setOtpMode(m) {
+  otpMode = m;
+  $('#forgotTitle').textContent = m === 'login' ? 'כניסה עם קוד למייל' : 'שחזור סיסמה';
+  $('#resetTitle').textContent = m === 'login' ? 'הזנת קוד כניסה' : 'איפוס סיסמה';
+  $('#resetPassWrap').classList.toggle('hidden', m === 'login');
+  $('#resetSubmit').textContent = m === 'login' ? 'כניסה' : 'עדכן סיסמה והתחבר';
+}
+$('#codeLoginBtn').onclick = (e) => { e.preventDefault(); setOtpMode('login'); showAuthForm('forgotForm'); const v = $('#loginUser').value.trim(); const u = v && Auth.byName(v); if (u && u.email) $('#forgotEmail').value = u.email; else if (validEmail(v)) $('#forgotEmail').value = v; };
+$('#forgotBtn').onclick = (e) => { e.preventDefault(); setOtpMode('reset'); showAuthForm('forgotForm'); const v = $('#loginUser').value.trim(); const u = v && Auth.byName(v); if (u && u.email) $('#forgotEmail').value = u.email; else if (validEmail(v)) $('#forgotEmail').value = v; };
+$$('[data-back]').forEach((b) => b.onclick = (e) => { e.preventDefault(); setOtpMode('reset'); showAuthForm('loginForm'); });
 
 async function sendEmail(toEmail, subject, message) {
   const body = {
@@ -748,9 +802,9 @@ async function sendResetCode() {
   authMsg('שולח קוד…');
   $('#sendCodeBtn').disabled = true;
   try {
-    await sendEmail(a.email, 'קוד אימות – תמלול פלוס', code);
+    await sendEmail(a.email, otpMode === 'login' ? 'קוד כניסה – תמלול פלוס' : 'קוד אימות – תמלול פלוס', code);
     showAuthForm('resetForm'); clearOtp();
-    $('#resetLead').textContent = `שלחנו קוד בן 4 ספרות אל ${a.email}. הזן אותו והגדר סיסמה חדשה.`;
+    $('#resetLead').textContent = otpMode === 'login' ? `שלחנו קוד בן 4 ספרות אל ${a.email}. הזן אותו כדי להיכנס.` : `שלחנו קוד בן 4 ספרות אל ${a.email}. הזן אותו והגדר סיסמה חדשה.`;
     authMsg('✅ הקוד נשלח למייל', 'ok-text');
     setTimeout(() => $('#otp input').focus(), 80);
   } catch (err) {
@@ -766,13 +820,18 @@ $('#resetForm').addEventListener('submit', async (e) => {
   const r = LS.get('reset', null);
   const a = r && Auth.users().find((u) => u.id === r.userId);
   const code = $('#resetCode').value.trim(), p = $('#resetPass').value;
-  if (!r || !a) return authMsg('אין בקשת שחזור פעילה – שלח קוד מחדש', 'err-text');
+  if (!r || !a) return authMsg('אין בקשה פעילה – שלח קוד מחדש', 'err-text');
   if (Date.now() > r.exp) return authMsg('תוקף הקוד פג – שלח קוד חדש', 'err-text');
   if (r.tries >= 5) return authMsg('יותר מדי ניסיונות – שלח קוד חדש', 'err-text');
   if (code.length !== 4) return authMsg('הזן את 4 הספרות מהמייל', 'err-text');
   if ((await sha256(r.salt + code)) !== r.hash) {
     r.tries++; LS.set('reset', r); clearOtp(); $('#otp input').focus();
     return authMsg(`קוד האימות שגוי (נשארו ${Math.max(0, 5 - r.tries)} ניסיונות)`, 'err-text');
+  }
+  if (otpMode === 'login') {
+    LS.del('reset'); clearOtp();
+    toast('✅ נכנסת בהצלחה');
+    Auth.startSession(a); return enterApp();
   }
   if (!p) return authMsg('יש להזין סיסמה חדשה', 'err-text');
   a.salt = uid(); a.hash = await hashPass(p, a.salt);
@@ -903,8 +962,8 @@ async function whisper(blob, fileName, lang) {
   if (lang === 'en') fd.append('prompt', 'Accurate English transcription with punctuation.');
   return groqFetch('/audio/transcriptions', { method: 'POST', body: fd });
 }
-async function transcribeBlob(blob, name, lang, onProgress) {
-  if (engineFor(lang) === 'gemini') return geminiTranscribe(blob, name, lang, onProgress);
+async function transcribeBlob(blob, name, lang, onProgress, opts = {}) {
+  if (engineFor(lang) === 'gemini') return geminiTranscribe(blob, name, lang, onProgress, opts);
   const ext = guessExt(blob, name);
   const tryDirect = blob.size <= MAX_DIRECT;
   if (tryDirect) {
@@ -966,7 +1025,7 @@ async function gemFetch(path, opts = {}, attempt = 0) {
   return r.json();
 }
 let gemModelCache = null;
-const GEM_PREFER = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.5-pro'];
+const GEM_PREFER = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-3.5-flash-lite', 'gemini-flash-lite-latest'];
 async function geminiModels() {
   if (gemModelCache) return gemModelCache;
   const res = await gemFetch('/models?pageSize=200');
@@ -988,6 +1047,32 @@ const GEM_LANG_PROMPT = {
   en: 'Transcribe this audio VERBATIM in English with punctuation. Do NOT translate or summarize.',
   auto: 'Transcribe this audio VERBATIM in the language that is spoken (Yiddish and Hebrew in Hebrew letters without nikud). Do NOT translate or summarize.'
 };
+function gemPrompt(lang, opts = {}) {
+  let p = GEM_LANG_PROMPT[lang] || GEM_LANG_PROMPT.auto;
+  if (lang === 'yi' && opts.out === 'he') p = 'Listen carefully to this Yiddish (Hasidic Yiddish) audio. Write an accurate, fluent HEBREW translation of everything that is said, sentence by sentence, in modern Hebrew without nikud. Do not skip anything, do not summarize, do not add anything that was not said. Keep names of people and places.';
+  if (opts.speakers !== false) p += ' If more than one person speaks, begin each line (right after the time) with the speaker label: use the person\'s name if it is mentioned in the conversation, otherwise "דובר 1:", "דובר 2:" etc. If only one person speaks, do not add labels.';
+  return p + ' Put each sentence on its own line, starting with its start time in the format [mm:ss]. Cover the whole recording from beginning to end. Output only the transcript lines.';
+}
+async function geminiTranslateText(text, target) {
+  const models = await geminiModels();
+  const parts = splitText(text, 6000), out = [];
+  for (const part of parts) {
+    let done = null, lastErr;
+    for (const model of models.slice(0, 5)) {
+      try {
+        const res = await gemFetch(`/models/${model}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: `Translate the following speech transcript into ${LANG_EN[target]}. It may be Hasidic Yiddish, Hebrew or English and may contain recognition errors – translate the intended meaning faithfully. Keep line breaks and speaker labels, and translate the labels too (e.g. "דובר 1:"). Keep the [mm:ss] times if present. Output ONLY the translation.\n\n${part}` }] }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 20000 } }) });
+        const c = res.candidates && res.candidates[0];
+        done = c && c.content && (c.content.parts || []).filter((p) => !p.thought).map((p) => p.text || '').join('').trim();
+        if (done) break;
+      } catch (err) { lastErr = err; }
+    }
+    if (!done) throw lastErr || new Error('Gemini לא החזיר תרגום');
+    out.push(done);
+  }
+  return out.join('\n');
+}
 function parseTimedLines(txt, dur) {
   const segs = [];
   txt.split(/\n+/).forEach((line) => {
@@ -1002,18 +1087,18 @@ function parseTimedLines(txt, dur) {
   for (let i = 0; i < segs.length; i++) segs[i].end = i + 1 < segs.length ? Math.max(segs[i].start, segs[i + 1].start) : Math.max(segs[i].start, dur || segs[i].start + 5);
   return segs;
 }
-async function geminiTranscribeOne(blob, mime, lang, dur) {
+async function geminiTranscribeOne(blob, mime, lang, dur, opts = {}) {
   const models = await geminiModels();
   const b64 = await blobToB64(blob);
   let lastErr;
   const tries = [];
-  models.slice(0, 4).forEach((m, i) => { tries.push(m); if (i === 0) tries.push(m); });
+  models.slice(0, 7).forEach((m, i) => { tries.push(m); if (i === 0) tries.push(m); });
   for (const model of tries) {
     try {
       const body = {
         contents: [{ role: 'user', parts: [
           { inline_data: { mime_type: mime, data: b64 } },
-          { text: (GEM_LANG_PROMPT[lang] || GEM_LANG_PROMPT.auto) + ' Put each sentence on its own line, starting with its start time in the format [mm:ss]. Cover the whole recording from beginning to end. Output only the transcript lines.' }
+          { text: gemPrompt(lang, opts) }
         ] }],
         generationConfig: { temperature: 0, maxOutputTokens: 30000 }
       };
@@ -1031,9 +1116,30 @@ async function geminiTranscribeOne(blob, mime, lang, dur) {
   throw lastErr || new Error('Gemini נכשל');
 }
 const GEM_CHUNK_CACHE = new Map();
+/* When Gemini refuses a chunk (e.g. singing/music), split it to 1-minute pieces; pieces Gemini still refuses go to Whisper */
+async function geminiSubChunks(audio, st, en, lang, onProgress, opts = {}) {
+  const out = [];
+  for (let t = st, k = 1; t < en; t += 60, k++) {
+    const e = Math.min(en, t + 60);
+    onProgress && onProgress(`קטע ${k}…`);
+    const wav = encodeWav(await resampleMono16k(audio, t, e));
+    let segs = null;
+    try { segs = await geminiTranscribeOne(wav, 'audio/wav', lang, e - t, opts); } catch (err) { console.warn('sub-chunk gemini failed', err.message); }
+    if (!segs || !segs.length) {
+      try {
+        const res = await whisper(wav, 'audio.wav', lang);
+        segs = (res.segments || []).map((x) => ({ start: x.start, end: x.end, text: (x.text || '').trim() }));
+        if (!segs.length && res.text) segs = [{ start: 0, end: e - t, text: res.text.trim() }];
+        if (segs.length) segs[0].text = '⚠️ ' + segs[0].text;
+      } catch (err2) { segs = [{ start: 0, end: e - t, text: '[קטע שלא תומלל]' }]; }
+    }
+    segs.forEach((x) => out.push({ start: Math.min(e, x.start + t), end: Math.min(e, x.end + t), text: x.text }));
+  }
+  return out;
+}
 const GEM_MAX_INLINE = 13 * 1024 * 1024;
 const GEM_CHUNK_SEC = 300;
-async function geminiTranscribe(blob, name, lang, onProgress) {
+async function geminiTranscribe(blob, name, lang, onProgress, opts = {}) {
   const ext = guessExt(blob, name);
   const mimeByExt = { ogg: 'audio/ogg', webm: 'audio/webm', mp3: 'audio/mp3', m4a: 'audio/aac', mp4: 'audio/mp4', wav: 'audio/wav', flac: 'audio/flac', mpeg: 'audio/mpeg', mpga: 'audio/mpeg' };
   let audio = null;
@@ -1044,7 +1150,7 @@ async function geminiTranscribe(blob, name, lang, onProgress) {
     onProgress && onProgress('Gemini מתמלל…');
     let segs;
     for (let round = 0; ; round++) {
-      try { segs = await geminiTranscribeOne(blob, mimeByExt[ext] || blob.type || 'audio/ogg', lang, total); break; }
+      try { segs = await geminiTranscribeOne(blob, mimeByExt[ext] || blob.type || 'audio/ogg', lang, total, opts); break; }
       catch (err) {
         if (round >= 3 || (err.status && ![429, 500, 503].includes(err.status) && !/לא החזיר|timeout/.test(err.message))) throw err;
         const wait = 20 * (round + 1);
@@ -1060,14 +1166,15 @@ async function geminiTranscribe(blob, name, lang, onProgress) {
   for (let i = 0; i < parts; i++) {
     const st = i * GEM_CHUNK_SEC, en = Math.min(total, st + GEM_CHUNK_SEC);
     onProgress && onProgress(`Gemini מתמלל חלק ${i + 1} מתוך ${parts}…`);
-    const cacheKey = blob.size + ':' + lang + ':' + i;
+    const cacheKey = blob.size + ':' + lang + ':' + (opts.out || '') + ':' + i;
     let segs = GEM_CHUNK_CACHE.get(cacheKey);
     if (!segs) {
       const wav = encodeWav(await resampleMono16k(audio, st, en));
       for (let round = 0; ; round++) {
-        try { segs = await geminiTranscribeOne(wav, 'audio/wav', lang, en - st); break; }
+        try { segs = await geminiTranscribeOne(wav, 'audio/wav', lang, en - st, opts); break; }
         catch (err) {
-          if (round >= 3 || (err.status && ![429, 500, 503].includes(err.status) && !/לא החזיר|timeout/.test(err.message))) throw err;
+          if (/לא החזיר/.test(err.message)) { segs = await geminiSubChunks(audio, st, en, lang, (p) => onProgress && onProgress(`חלק ${i + 1}: ${p}`), opts); segs = segs.map((x) => Object.assign({}, x, { start: x.start - st, end: x.end - st })); break; }
+          if (round >= 3 || (err.status && ![429, 500, 503].includes(err.status) && !/timeout/.test(err.message))) throw err;
           const wait = 20 * (round + 1);
           onProgress && onProgress(`Gemini עמוס – מנסה שוב חלק ${i + 1} בעוד ${wait} שניות…`);
           await sleep(wait * 1000);
@@ -1153,7 +1260,7 @@ const Queue = {
     const id = uid();
     const rec = {
       id, title: title || (name ? name.replace(/\.[^.]+$/, '') : 'הקלטה'), fileName: name || 'recording', mime: blob.type || '', size: blob.size,
-      owner: (Auth.current() || {}).id || null, lang, createdAt: Date.now(), duration: 0, folderId: null, tags: [], text: '', segments: [], summary: '', status: 'queued', progress: '', error: ''
+      owner: (Auth.current() || {}).id || null, lang, yiOut: lang === 'yi' ? (LS.get('yiOut', 'both')) : undefined, createdAt: Date.now(), duration: 0, folderId: null, tags: [], text: '', segments: [], summary: '', status: 'queued', progress: '', error: ''
     };
     await DB.put('audio', blob, id);
     await DB.put('recs', rec);
@@ -1174,8 +1281,19 @@ const Queue = {
         rec.status = 'processing'; rec.progress = 'מתחיל…'; rec.error = '';
         await DB.put('recs', rec); renderQueue();
         try {
-          const res = await transcribeBlob(blob, rec.fileName, rec.lang, async (p) => { rec.progress = p; await DB.put('recs', rec); renderQueue(); });
+          const prog = async (p) => { rec.progress = p; await DB.put('recs', rec); renderQueue(); };
+          const opts = { out: rec.lang === 'yi' && rec.yiOut === 'he' ? 'he' : undefined, speakers: LS.get('speakers', true) };
+          const res = await transcribeBlob(blob, rec.fileName, rec.lang, prog, opts);
           rec.text = res.text; rec.segments = res.segments; rec.duration = res.duration || rec.duration;
+          rec.outLang = opts.out || rec.lang;
+          if (rec.lang === 'yi' && rec.yiOut === 'both' && res.text) {
+            await prog('מתרגם לעברית…');
+            try {
+              const src = res.segments && res.segments.length ? res.segments.map((x) => x.text).join('\n') : res.text;
+              const he = geminiKey() ? await geminiTranslateText(src, 'he').catch(() => translateText(src, 'he')) : await translateText(src, 'he');
+              rec.translations = Object.assign({}, rec.translations, { he });
+            } catch (e) { console.warn('auto translate failed', e); }
+          }
           if (!rec.duration) { try { rec.duration = (await decodeAudio(blob)).duration; } catch (e) {} }
           rec.status = res.text ? 'done' : 'error';
           rec.error = res.text ? '' : 'לא זוהה דיבור בהקלטה';
@@ -1238,7 +1356,14 @@ async function retryRec(id) {
 }
 
 /* ---------------- Language pills ---------------- */
-function syncLangPills() { $$('#langPills button').forEach((b) => b.classList.toggle('active', b.dataset.lang === $('#langSel').value)); }
+function syncLangPills() {
+  $$('#langPills button').forEach((b) => b.classList.toggle('active', b.dataset.lang === $('#langSel').value));
+  $('#yiOutPills').classList.toggle('hidden', $('#langSel').value !== 'yi');
+  const yo = LS.get('yiOut', 'both'); $$('#yiOutPills button').forEach((b) => b.classList.toggle('active', b.dataset.yiout === yo));
+  $('#speakersChk').checked = LS.get('speakers', true);
+}
+$('#yiOutPills').addEventListener('click', (e) => { const b = e.target.closest('[data-yiout]'); if (!b) return; LS.set('yiOut', b.dataset.yiout); syncLangPills(); });
+$('#speakersChk').addEventListener('change', () => LS.set('speakers', $('#speakersChk').checked));
 $('#langPills').addEventListener('click', (e) => { const b = e.target.closest('[data-lang]'); if (!b) return; $('#langSel').value = b.dataset.lang; syncLangPills(); });
 
 /* ---------------- Upload ---------------- */
@@ -1430,7 +1555,7 @@ const Detail = {
     this.id = id; this.rec = rec;
     go('detail');
     $('#dTitle').value = rec.title;
-    $('#dLang').textContent = LANGS[rec.lang] || '';
+    $('#dLang').textContent = (LANGS[rec.lang] || '') + (rec.lang === 'yi' && rec.outLang === 'he' ? ' ← עברית' : '');
     $('#dMeta').textContent = fmtDate(rec.createdAt) + ' · ' + fmtTime(rec.duration);
     $('#dFolder').innerHTML = folderOptions(await folders(), rec.folderId);
     this.renderTags();
@@ -1720,6 +1845,7 @@ async function renderSettings() {
   $('#ejService').value = setting('emailjsService');
   $('#ejTemplate').value = setting('emailjsTemplate');
   $('#ejKey').value = setting('emailjsKey');
+  $('#gClientId').value = setting('googleClientId') || '';
   $('#accInfo').textContent = a ? `משתמש: ${a.username} · ${a.role === 'admin' ? 'מנהל' : 'משתמש רגיל'}` : '';
   if (Auth.isAdmin()) renderUsers();
   $('#accEmail').value = a ? a.email : '';
@@ -1827,6 +1953,7 @@ $('#saveAccBtn').onclick = async () => {
   Auth.update(a); $('#accOld').value = ''; $('#accNew').value = '';
   $('#accMsg').innerHTML = '<span class="ok-text">נשמר ✓</span>';
 };
+$('#saveGBtn').onclick = () => { saveSettings({ googleClientId: $('#gClientId').value.trim() }); $('#gMsg').innerHTML = '<span class="ok-text">נשמר ✓ (הכפתור יופיע במסך הכניסה)</span>'; };
 $('#saveEjBtn').onclick = () => {
   saveSettings({ emailjsService: $('#ejService').value.trim(), emailjsTemplate: $('#ejTemplate').value.trim(), emailjsKey: $('#ejKey').value.trim() });
   $('#ejMsg').innerHTML = '<span class="ok-text">נשמר ✓</span>';
