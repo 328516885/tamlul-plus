@@ -526,7 +526,7 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
         <h3>התקנה בטלפון ושיתוף מוואטסאפ</h3>
         <p><b>אנדרואיד (כרום):</b> פתח את האתר ← תפריט ⋮ ← "התקנת אפליקציה" / "הוספה למסך הבית". אחרי ההתקנה, בוואטסאפ לוחצים לחיצה ארוכה על הודעה קולית ← שיתוף ↗ ← "תמלול פלוס", וההקלטה נכנסת לתור אוטומטית.</p>
         <p><b>אייפון (ספארי):</b> כפתור השיתוף ← "הוסף למסך הבית". בוואטסאפ: לחיצה ארוכה על ההודעה הקולית ← העבר/שתף ← "שמירה בקבצים", ואז באפליקציה "בחירת קבצים".</p>
-        <p class="hint">גרסה 1.6.0</p>
+        <p class="hint">גרסה 1.6.1</p>
       </div>
     </section>
   </main>
@@ -540,12 +540,12 @@ nav.tabs button.active{background:var(--card);color:var(--primary);box-shadow:0 
 /* =========================================================
    תמלול פלוס – מערכת תמלול הקלטות
    ========================================================= */
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.6.1';
 const DEFAULTS = {
-  emailjsService: 'service_nybca58',
-  emailjsTemplate: 'template_9e88gji',
+  emailjsService: 'service_tplus',
+  emailjsTemplate: 'template_gzcqacc',
   emailjsKey: '6G0YaH5dH_TKKk_hu',
-  googleClientId: '',
+  googleClientId: '178659008979-7qgk5ejgokmi3nrajp2nhm70iopqb489.apps.googleusercontent.com',
   whisperModel: 'whisper-large-v3',
   defLang: 'he'
 };
@@ -599,7 +599,8 @@ const LS = {
   set(k, v) { try { localStorage.setItem('tplus_' + k, JSON.stringify(v)); } catch (e) {} },
   del(k) { try { localStorage.removeItem('tplus_' + k); } catch (e) {} }
 };
-function setting(k) { const s = LS.get('settings', {}); return s[k] !== undefined && s[k] !== '' ? s[k] : DEFAULTS[k]; }
+const OLD_VALUES = { emailjsService: ['service_nybca58'], emailjsTemplate: ['template_9e88gji'] };
+function setting(k) { const s = LS.get('settings', {}); const v = s[k]; return v !== undefined && v !== '' && !(OLD_VALUES[k] || []).includes(v) ? v : DEFAULTS[k]; }
 function saveSettings(obj) { LS.set('settings', Object.assign(LS.get('settings', {}), obj)); }
 
 /* ---------------- IndexedDB ---------------- */
@@ -772,12 +773,12 @@ $('#codeLoginBtn').onclick = (e) => { e.preventDefault(); setOtpMode('login'); s
 $('#forgotBtn').onclick = (e) => { e.preventDefault(); setOtpMode('reset'); showAuthForm('forgotForm'); const v = $('#loginUser').value.trim(); const u = v && Auth.byName(v); if (u && u.email) $('#forgotEmail').value = u.email; else if (validEmail(v)) $('#forgotEmail').value = v; };
 $$('[data-back]').forEach((b) => b.onclick = (e) => { e.preventDefault(); setOtpMode('reset'); showAuthForm('loginForm'); });
 
-async function sendEmail(toEmail, subject, message) {
+async function sendEmail(toEmail, subject, message, toName) {
   const body = {
     service_id: setting('emailjsService'),
     template_id: setting('emailjsTemplate'),
     user_id: setting('emailjsKey'),
-    template_params: { to_email: toEmail, email: toEmail, subject, title: subject, message, name: 'תמלול פלוס', from_name: 'תמלול פלוס' }
+    template_params: { to_email: toEmail, email: toEmail, subject, title: subject, message, passcode: message, code: message, name: toName || '', to_name: toName || '', from_name: 'מוצלח' }
   };
   const r = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
@@ -802,7 +803,7 @@ async function sendResetCode() {
   authMsg('שולח קוד…');
   $('#sendCodeBtn').disabled = true;
   try {
-    await sendEmail(a.email, otpMode === 'login' ? 'קוד כניסה – תמלול פלוס' : 'קוד אימות – תמלול פלוס', code);
+    await sendEmail(a.email, otpMode === 'login' ? 'קוד כניסה – מוצלח' : 'קוד אימות – מוצלח', code, a.display || a.username);
     showAuthForm('resetForm'); clearOtp();
     $('#resetLead').textContent = otpMode === 'login' ? `שלחנו קוד בן 4 ספרות אל ${a.email}. הזן אותו כדי להיכנס.` : `שלחנו קוד בן 4 ספרות אל ${a.email}. הזן אותו והגדר סיסמה חדשה.`;
     authMsg('✅ הקוד נשלח למייל', 'ok-text');
